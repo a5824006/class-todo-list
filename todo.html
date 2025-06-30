@@ -5,9 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>MyStudy - 時間順ToDo</title>
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
     body {
       font-family: sans-serif;
       margin: 0;
@@ -43,9 +41,7 @@
       color: #333;
       border-bottom: 1px solid #eee;
     }
-    .menu a:hover {
-      background: #f9f9f9;
-    }
+    .menu a:hover { background: #f9f9f9; }
     .card {
       border: 1px solid #ccc;
       margin: 10px auto;
@@ -82,6 +78,11 @@
       color: #333;
       text-decoration: none;
     }
+    #empty-message {
+      color: #777;
+      text-align: center;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
@@ -98,8 +99,9 @@
 
   <main>
     <div class="card">
-      <h1>🕒 今日以降のToDo & イベント</h1>
+      <h2>🕒 今日以降のToDo & イベント</h2>
       <div id="sorted-list"></div>
+      <p id="empty-message" style="display: none;">📭 今日以降の予定はありません</p>
     </div>
   </main>
 
@@ -162,36 +164,42 @@
     entries.sort((a, b) => new Date(a.iso) - new Date(b.iso));
 
     const list = document.getElementById("sorted-list");
-    entries.forEach(e => {
-      const div = document.createElement("div");
-      div.className = "item";
+    const emptyMessage = document.getElementById("empty-message");
 
-      const dateObj = new Date(e.iso);
-      const yyyy = dateObj.getFullYear();
-      const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
-      const dd = String(dateObj.getDate()).padStart(2, '0');
-      const hh = String(dateObj.getHours()).padStart(2, '0');
-      const mi = String(dateObj.getMinutes()).padStart(2, '0');
-      const displayTime = `${yyyy}/${mm}/${dd}${e.iso.length > 10 ? ` ${hh}:${mi}` : ''}`;
+    if (entries.length === 0) {
+      emptyMessage.style.display = "block";
+    } else {
+      entries.forEach(e => {
+        const div = document.createElement("div");
+        div.className = "item";
 
-      div.innerHTML = `<time>${displayTime}</time><div>${e.label}</div>`;
+        const dateObj = new Date(e.iso);
+        const yyyy = dateObj.getFullYear();
+        const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const dd = String(dateObj.getDate()).padStart(2, '0');
+        const hh = String(dateObj.getHours()).padStart(2, '0');
+        const mi = String(dateObj.getMinutes()).padStart(2, '0');
+        const displayTime = `${yyyy}/${mm}/${dd}${e.iso.length > 10 ? ` ${hh}:${mi}` : ''}`;
 
-      const btn = document.createElement("button");
-      btn.textContent = "削除";
-      btn.onclick = () => {
-        if (e.type === "todo") {
-          todos = todos.filter(t => t.id !== e.id);
-          localStorage.setItem("todos", JSON.stringify(todos));
-        } else {
-          events = events.filter(ev => ev.id !== e.id);
-          localStorage.setItem("events", JSON.stringify(events));
-        }
-        location.reload();
-      };
+        div.innerHTML = `<time>${displayTime}</time><div>${e.label}</div>`;
 
-      div.appendChild(btn);
-      list.appendChild(div);
-    });
+        const btn = document.createElement("button");
+        btn.textContent = "削除";
+        btn.onclick = () => {
+          if (e.type === "todo") {
+            todos = todos.filter(t => t.id !== e.id);
+            localStorage.setItem("todos", JSON.stringify(todos));
+          } else {
+            events = events.filter(ev => ev.id !== e.id);
+            localStorage.setItem("events", JSON.stringify(events));
+          }
+          location.reload();
+        };
+
+        div.appendChild(btn);
+        list.appendChild(div);
+      });
+    }
   </script>
 </body>
 </html>
