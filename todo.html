@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MyStudy - 時間順ToDo</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 0 10px 60px;
+      background: #f9f9f9;
+      overflow-x: hidden;
+    }
+    header, footer {
+      background: #f0f0f0;
+      padding: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .menu-button {
+      font-size: 24px;
+      cursor: pointer;
+    }
+    .menu {
+      position: absolute;
+      top: 50px;
+      right: 10px;
+      background: white;
+      border: 1px solid #ccc;
+      display: none;
+      flex-direction: column;
+      z-index: 10;
+      width: 160px;
+    }
+    .menu a {
+      padding: 10px;
+      text-decoration: none;
+      color: #333;
+      border-bottom: 1px solid #eee;
+    }
+    .menu a:hover {
+      background: #f9f9f9;
+    }
+    .card {
+      border: 1px solid #ccc;
+      margin: 10px auto;
+      padding: 10px;
+      border-radius: 8px;
+      background: #fff;
+      max-width: 600px;
+    }
+    .item {
+      padding: 8px;
+      border-bottom: 1px solid #ccc;
+      word-break: break-word;
+    }
+    .item time {
+      font-weight: bold;
+      display: block;
+    }
+    .item button {
+      margin-top: 4px;
+    }
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      background: #f2f2f2;
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0;
+      border-top: 1px solid #ccc;
+      z-index: 5;
+    }
+    .bottom-nav a {
+      font-size: 24px;
+      color: #333;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <span class="logo">📘 MyStudy</span>
+    <div class="menu-button" onclick="toggleMenu()">☰</div>
+  </header>
+
+  <nav id="dropdown-menu" class="menu">
+    <a href="home.html">🏠 ホーム</a>
+    <a href="todo.html">🕒 時間順表示</a>
+    <a href="#" onclick="addClass()">➕ 教科を追加</a>
+  </nav>
+
+  <main>
+    <div class="card">
+      <h1>🕒 今日以降のToDo & イベント</h1>
+      <div id="sorted-list"></div>
+    </div>
+  </main>
+
+  <footer class="bottom-nav">
+    <a href="home.html">🏠</a>
+    <a href="todo.html">🕒</a>
+    <a href="#" onclick="addClass()">➕</a>
+  </footer>
+
+  <script>
+    function toggleMenu() {
+      const menu = document.getElementById("dropdown-menu");
+      menu.style.display = (menu.style.display === "flex") ? "none" : "flex";
+    }
+
+    function addClass() {
+      const subject = prompt("教科名を入力してください：");
+      if (!subject) return;
+      const weekday = prompt("曜日番号を入力（1=月〜5=金）：");
+      const period = prompt("時限を入力（1〜6）：");
+      const classId = subject + '-' + weekday + '-' + period;
+      const classes = JSON.parse(localStorage.getItem("classes") || "[]");
+      classes.push({ type: "class", subject, weekday: parseInt(weekday), period: parseInt(period), id: classId });
+      localStorage.setItem("classes", JSON.stringify(classes));
+      location.reload();
+    }
+
+    const classes = JSON.parse(localStorage.getItem("classes") || "[]");
+    let todos = JSON.parse(localStorage.getItem("todos") || "[]");
+    let events = JSON.parse(localStorage.getItem("events") || "[]");
+    const today = new Date().toISOString().split("T")[0];
+
+    const entries = [];
+
+    todos.forEach(t => {
+      if (!t.done && t.due >= today) {
+        const className = classes.find(c => c.id === t.classId)?.subject || "教科なし";
+        const isoTime = t.time ? `${t.due}T${t.time}` : t.due;
+        entries.push({
+          id: t.id,
+          type: "todo",
+          iso: isoTime,
+          label: `[ToDo] (${className})：${t.content}${t.memo ? `（${t.memo}）` : ''}`
+        });
+      }
+    });
+
+    events.forEach(e => {
+      if (e.date >= today) {
+        const isoTime = e.time ? `${e.date}T${e.time}` : e.date;
+        entries.push({
+          id: e.id,
+          type: "event",
+          iso: isoTime,
+          label: `[イベント] ${e.title}${e.memo ? `（${e.memo}）` : ''}${e.time && !e.memo ? `（${e.time}）` : ''}`
+        });
+      }
+    });
+
+    entries.sort((a, b) => new Date(a.iso) - new Date(b.iso));
+
+    const list = document.getElementById("sorted-list");
+    entries.forEach(e => {
+      const div = document.createElement("div");
+      div.className = "item";
+
+      const dateObj = new Date(e.iso);
+      const yyyy = dateObj.getFullYear();
+      const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+      const dd = String(dateObj.getDate()).padStart(2, '0');
+      const hh = String(dateObj.getHours()).padStart(2, '0');
+      const mi = String(dateObj.getMinutes()).padStart(2, '0');
+      const displayTime = `${yyyy}/${mm}/${dd}${e.iso.length > 10 ? ` ${hh}:${mi}` : ''}`;
+
+      div.innerHTML = `<time>${displayTime}</time><div>${e.label}</div>`;
+
+      const btn = document.createElement("button");
+      btn.textContent = "削除";
+      btn.onclick = () => {
+        if (e.type === "todo") {
+          todos = todos.filter(t => t.id !== e.id);
+          localStorage.setItem("todos", JSON.stringify(todos));
+        } else {
+          events = events.filter(ev => ev.id !== e.id);
+          localStorage.setItem("events", JSON.stringify(events));
+        }
+        location.reload();
+      };
+
+      div.appendChild(btn);
+      list.appendChild(div);
+    });
+  </script>
+</body>
+</html>

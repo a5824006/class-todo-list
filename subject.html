@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>教科ごとのToDo</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 0 10px 60px;
+      background: #f9f9f9;
+      overflow-x: hidden;
+    }
+    header, footer {
+      background: #f0f0f0;
+      padding: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .menu-button {
+      font-size: 24px;
+      cursor: pointer;
+    }
+    .menu {
+      position: absolute;
+      top: 50px;
+      right: 10px;
+      background: white;
+      border: 1px solid #ccc;
+      display: none;
+      flex-direction: column;
+      z-index: 10;
+      min-width: 140px;
+    }
+    .menu a {
+      padding: 10px;
+      text-decoration: none;
+      color: #333;
+      border-bottom: 1px solid #eee;
+      display: block;
+    }
+    .menu a:hover {
+      background: #f9f9f9;
+    }
+    .card {
+      border: 1px solid #ccc;
+      background: #fff;
+      padding: 10px;
+      margin: 10px auto;
+      border-radius: 8px;
+      max-width: 600px;
+    }
+    .item {
+      border-bottom: 1px solid #ccc;
+      padding: 6px 0;
+      word-break: break-word;
+    }
+    input, textarea, select {
+      margin: 4px 0;
+      width: 100%;
+      padding: 6px;
+    }
+    button {
+      padding: 6px 12px;
+      margin-top: 8px;
+    }
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      background: #f2f2f2;
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0;
+      border-top: 1px solid #ccc;
+      z-index: 5;
+    }
+    .bottom-nav a {
+      font-size: 24px;
+      color: #333;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <span class="logo">📘 MyStudy</span>
+    <div class="menu-button" onclick="toggleMenu()">☰</div>
+  </header>
+
+  <nav id="dropdown-menu" class="menu">
+    <a href="home.html">🏠 ホーム</a>
+    <a href="todo.html">🕒 時間順表示</a>
+    <a href="#" onclick="addClass()">➕ 教科を追加</a>
+  </nav>
+
+  <main>
+    <div class="card">
+      <h2 id="subject-title">教科のToDo</h2>
+      <input type="text" id="todoContent" placeholder="タイトル">
+      <input type="date" id="todoDate">
+      <input type="time" id="todoTime">
+      <textarea id="todoMemo" placeholder="メモ（任意）"></textarea>
+      <button onclick="addTodo()">登録</button>
+    </div>
+
+    <div class="card">
+      <h3>登録済みのToDo</h3>
+      <div id="todo-list"></div>
+    </div>
+  </main>
+
+  <footer class="bottom-nav">
+    <a href="home.html">🏠</a>
+    <a href="todo.html">🕒</a>
+    <a href="#" onclick="addClass()">➕</a>
+  </footer>
+
+  <script>
+    function toggleMenu() {
+      const menu = document.getElementById("dropdown-menu");
+      menu.style.display = (menu.style.display === "flex") ? "none" : "flex";
+    }
+
+    function addClass() {
+      const subject = prompt("教科名を入力してください：");
+      if (!subject) return;
+      const weekday = prompt("曜日番号を入力（1=月〜5=金）：");
+      const period = prompt("時限を入力（1〜6）：");
+      const classId = subject + '-' + weekday + '-' + period;
+      const classes = JSON.parse(localStorage.getItem("classes") || "[]");
+      classes.push({ type: "class", subject, weekday: parseInt(weekday), period: parseInt(period), id: classId });
+      localStorage.setItem("classes", JSON.stringify(classes));
+      location.reload();
+    }
+
+    const params = new URLSearchParams(location.search);
+    const classId = params.get("classId");
+    const classes = JSON.parse(localStorage.getItem("classes") || "[]");
+    const todos = JSON.parse(localStorage.getItem("todos") || "[]");
+    const subject = classes.find(c => c.id === classId);
+
+    document.getElementById("subject-title").textContent = `${subject.subject} のToDo`;
+
+    function addTodo() {
+      const content = document.getElementById("todoContent").value;
+      const due = document.getElementById("todoDate").value;
+      const time = document.getElementById("todoTime").value;
+      const memo = document.getElementById("todoMemo").value;
+      const todos = JSON.parse(localStorage.getItem("todos") || "[]");
+      todos.push({ id: Date.now(), type: "todo", classId, content, due, time, memo, done: false });
+      localStorage.setItem("todos", JSON.stringify(todos));
+      location.reload();
+    }
+
+    function deleteTodo(id) {
+      const todos = JSON.parse(localStorage.getItem("todos") || "[]");
+      const filtered = todos.filter(t => t.id !== id);
+      localStorage.setItem("todos", JSON.stringify(filtered));
+      location.reload();
+    }
+
+    const list = document.getElementById("todo-list");
+    todos.filter(t => t.classId === classId && !t.done).forEach(t => {
+      const div = document.createElement("div");
+      div.className = "item";
+      div.innerHTML = `<strong>${t.content}</strong><br>期限: ${t.due} ${t.time || ''}<br>${t.memo || ''}<br><button onclick="deleteTodo(${t.id})">削除</button>`;
+      list.appendChild(div);
+    });
+  </script>
+</body>
+</html>

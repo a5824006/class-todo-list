@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MyStudy - ホーム</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding-bottom: 60px;
+      background: #f9f9f9;
+      overflow-x: hidden;
+    }
+    header, footer {
+      background: #f0f0f0;
+      padding: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .menu-button {
+      font-size: 24px;
+      cursor: pointer;
+    }
+    .menu {
+      position: absolute;
+      top: 50px;
+      right: 10px;
+      background: white;
+      border: 1px solid #ccc;
+      display: none;
+      flex-direction: column;
+      z-index: 10;
+      width: 160px;
+    }
+    .menu a {
+      padding: 10px;
+      text-decoration: none;
+      color: #333;
+      border-bottom: 1px solid #eee;
+    }
+    .menu a:hover {
+      background: #f9f9f9;
+    }
+    .card {
+      border: 1px solid #ccc;
+      margin: 10px;
+      padding: 10px;
+      border-radius: 8px;
+      background: #fff;
+      max-width: 100%;
+      word-break: break-word;
+    }
+    input, textarea, select {
+      margin: 4px 0;
+      width: 100%;
+      padding: 6px;
+    }
+    button {
+      padding: 6px 12px;
+      margin-top: 8px;
+    }
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      background: #f2f2f2;
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0;
+      border-top: 1px solid #ccc;
+      z-index: 5;
+    }
+    .bottom-nav a {
+      font-size: 24px;
+      color: #333;
+      text-decoration: none;
+    }
+    .class-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+      word-break: break-word;
+    }
+    .class-item button {
+      margin-left: 10px;
+    }
+    .class-item span {
+      cursor: pointer;
+      text-decoration: underline;
+    }
+    time {
+      display: block;
+      word-break: break-word;
+      overflow-wrap: break-word;
+      white-space: normal;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <span class="logo">📘 MyStudy</span>
+    <div class="menu-button" onclick="toggleMenu()">☰</div>
+  </header>
+
+  <nav id="dropdown-menu" class="menu">
+    <a href="home.html">🏠 ホーム</a>
+    <a href="todo.html">🕒 時間順表示</a>
+    <a href="#" onclick="addClass()">➕ 教科を追加</a>
+  </nav>
+
+  <main>
+    <div class="card" id="current-class" style="display:none;"></div>
+
+    <div class="card">
+      <h2>今日の予定</h2>
+      <ul id="today-list"></ul>
+      <p id="empty-today" style="display:none; color: #777;">📭 今日の予定はありません</p>
+    </div>
+
+    <div class="card">
+      <h2>今後の予定を登録</h2>
+      <select id="entryType">
+        <option value="todo">ToDo</option>
+        <option value="event">イベント</option>
+      </select>
+      <input type="text" id="entryTitle" placeholder="タイトル">
+      <input type="date" id="entryDate">
+      <input type="time" id="entryTime">
+      <input type="text" id="entryMemo" placeholder="メモ（任意）">
+      <button onclick="addEntry()">登録</button>
+    </div>
+
+    <div class="card">
+      <h2>教科一覧</h2>
+      <ul id="class-list"></ul>
+      <button onclick="addClass()">＋教科を追加</button>
+    </div>
+  </main>
+
+  <footer class="bottom-nav">
+    <a href="home.html">🏠</a>
+    <a href="todo.html">🕒</a>
+    <a href="#" onclick="addClass()">➕</a>
+  </footer>
+
+  <script>
+    function toggleMenu() {
+      const menu = document.getElementById("dropdown-menu");
+      menu.style.display = (menu.style.display === "flex") ? "none" : "flex";
+    }
+
+    function addClass() {
+      const subject = prompt("教科名を入力してください：");
+      if (!subject) return;
+      const weekday = prompt("曜日番号を入力（1=月〜5=金）：");
+      const period = prompt("時限を入力（1〜6）：");
+      const classId = subject + '-' + weekday + '-' + period;
+      const classes = JSON.parse(localStorage.getItem("classes") || "[]");
+      classes.push({ type: "class", subject, weekday: parseInt(weekday), period: parseInt(period), id: classId });
+      localStorage.setItem("classes", JSON.stringify(classes));
+      location.reload();
+    }
+
+    function deleteClass(classId) {
+      const classes = JSON.parse(localStorage.getItem("classes") || "[]");
+      const filtered = classes.filter(c => c.id !== classId);
+      localStorage.setItem("classes", JSON.stringify(filtered));
+      location.reload();
+    }
+
+    function addEntry() {
+      const type = document.getElementById("entryType").value;
+      const title = document.getElementById("entryTitle").value;
+      const date = document.getElementById("entryDate").value;
+      const time = document.getElementById("entryTime").value;
+      const memo = document.getElementById("entryMemo").value;
+      const list = JSON.parse(localStorage.getItem(type === "todo" ? "todos" : "events") || "[]");
+      const newItem = type === "todo"
+        ? { id: Date.now(), type: "todo", classId: null, content: title, due: date, time, memo, done: false }
+        : { id: Date.now(), type: "event", title, date, time, memo };
+      list.push(newItem);
+      localStorage.setItem(type === "todo" ? "todos" : "events", JSON.stringify(list));
+      location.reload();
+    }
+
+    function loadPage() {
+      const classes = JSON.parse(localStorage.getItem("classes") || "[]");
+      let todos = JSON.parse(localStorage.getItem("todos") || "[]");
+      let events = JSON.parse(localStorage.getItem("events") || "[]");
+      const now = new Date();
+      const today = now.toISOString().split("T")[0];
+      const nowTime = now.getTime();
+
+      // 期限切れ削除
+      todos = todos.filter(t => new Date(t.due + "T" + (t.time || "00:00")).getTime() >= nowTime);
+      events = events.filter(e => new Date(e.date + "T" + (e.time || "00:00")).getTime() >= nowTime);
+      localStorage.setItem("todos", JSON.stringify(todos));
+      localStorage.setItem("events", JSON.stringify(events));
+
+      const schedule = [
+        [540, 630], [660, 750], [800, 890], [905, 995], [1010, 1100], [1110, 1200]
+      ];
+
+      const currentBox = document.getElementById("current-class");
+      const nowMin = now.getHours() * 60 + now.getMinutes();
+      const currentSubjects = classes.filter(c => {
+        const range = schedule[c.period - 1];
+        return c.weekday === now.getDay() && nowMin >= range[0] - 90 && nowMin <= range[1] + 90;
+      });
+
+      if (currentSubjects.length > 0) {
+        currentBox.style.display = "block";
+        currentBox.innerHTML = `<h2>📘 今の時間に近い教科</h2>`;
+        currentSubjects.forEach(c => {
+          const p = document.createElement("p");
+          const a = document.createElement("a");
+          a.href = `subject.html?classId=${c.id}`;
+          a.textContent = `${c.subject}（${['月','火','水','木','金'][c.weekday - 1]}${c.period}限）`;
+          p.appendChild(a);
+          currentBox.appendChild(p);
+        });
+      }
+
+      const todayList = document.getElementById("today-list");
+      const emptyToday = document.getElementById("empty-today");
+      let hasToday = false;
+      todos.filter(t => t.due === today && !t.done).forEach(t => {
+        const li = document.createElement("li");
+        li.textContent = `[ToDo] ${t.content}（${t.time || ''} ${t.memo || ''}）`;
+        todayList.appendChild(li);
+        hasToday = true;
+      });
+      events.filter(e => e.date === today).forEach(e => {
+        const li = document.createElement("li");
+        li.textContent = `[イベント] ${e.title}（${e.time || ''} ${e.memo || ''}）`;
+        todayList.appendChild(li);
+        hasToday = true;
+      });
+      if (!hasToday) {
+        emptyToday.style.display = "block";
+      }
+
+      const classList = document.getElementById("class-list");
+      classes.forEach(c => {
+        const li = document.createElement("li");
+        li.className = "class-item";
+        li.innerHTML = `<span onclick="location.href='subject.html?classId=${c.id}'">${c.subject}（${['月','火','水','木','金'][c.weekday - 1]}${c.period}限）</span> <button onclick="deleteClass('${c.id}')">削除</button>`;
+        classList.appendChild(li);
+      });
+    }
+
+    window.onload = loadPage;
+  </script>
+</body>
+</html>
