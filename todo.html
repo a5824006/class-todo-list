@@ -9,7 +9,7 @@
     body {
       font-family: sans-serif;
       margin: 0;
-      padding-bottom: 60px;
+      padding: 0;
       background: #f9f9f9;
       overflow-x: hidden;
     }
@@ -53,6 +53,11 @@
       background: #fff;
       max-width: 100%;
       word-break: break-word;
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
     .item {
       padding: 8px;
@@ -103,7 +108,14 @@
 
   <main>
     <div class="card">
-      <h2>🕒 今日以降のToDo & イベント</h2>
+      <div class="card-header">
+        <h2>🕒 今日以降のToDo & イベント</h2>
+        <select id="filterSelect" onchange="filterEntries()">
+          <option value="all">すべて表示</option>
+          <option value="todo">ToDoのみ表示</option>
+          <option value="event">イベントのみ表示</option>
+        </select>
+      </div>
       <div id="sorted-list"></div>
       <p id="empty-message" style="display: none;">📭 今日以降の予定はありません</p>
     </div>
@@ -155,58 +167,64 @@
 
     events.forEach(e => {
       if (e.date >= today) {
-        const className = e.classId ? (classes.find(c => c.id === e.classId)?.subject || "教科なし") : null;
+        const className = classes.find(c => c.id === e.classId)?.subject || "";
         const isoTime = e.time ? `${e.date}T${e.time}` : e.date;
         entries.push({
           id: e.id,
           type: "event",
           iso: isoTime,
-          label: className
-            ? `[イベント] (${className})：${e.title}${e.memo ? `（${e.memo}）` : ''}`
-            : `[イベント] ${e.title}${e.memo ? `（${e.memo}）` : ''}${e.time && !e.memo ? `（${e.time}）` : ''}`
+          label: `[イベント] ${className ? `(${className})：` : ''}${e.title}${e.memo ? `（${e.memo}）` : ''}${e.time && !e.memo ? `（${e.time}）` : ''}`
         });
       }
     });
 
     entries.sort((a, b) => new Date(a.iso) - new Date(b.iso));
 
-    const list = document.getElementById("sorted-list");
-    const emptyMessage = document.getElementById("empty-message");
+    function filterEntries() {
+      const type = document.getElementById("filterSelect").value;
+      const list = document.getElementById("sorted-list");
+      const emptyMessage = document.getElementById("empty-message");
+      list.innerHTML = "";
+      const filtered = entries.filter(e => type === "all" || e.type === type);
 
-    if (entries.length === 0) {
-      emptyMessage.style.display = "block";
-    } else {
-      entries.forEach(e => {
-        const div = document.createElement("div");
-        div.className = "item";
+      if (filtered.length === 0) {
+        emptyMessage.style.display = "block";
+      } else {
+        emptyMessage.style.display = "none";
+        filtered.forEach(e => {
+          const div = document.createElement("div");
+          div.className = "item";
 
-        const dateObj = new Date(e.iso);
-        const yyyy = dateObj.getFullYear();
-        const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
-        const dd = String(dateObj.getDate()).padStart(2, '0');
-        const hh = String(dateObj.getHours()).padStart(2, '0');
-        const mi = String(dateObj.getMinutes()).padStart(2, '0');
-        const displayTime = `${yyyy}/${mm}/${dd}${e.iso.length > 10 ? ` ${hh}:${mi}` : ''}`;
+          const dateObj = new Date(e.iso);
+          const yyyy = dateObj.getFullYear();
+          const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+          const dd = String(dateObj.getDate()).padStart(2, '0');
+          const hh = String(dateObj.getHours()).padStart(2, '0');
+          const mi = String(dateObj.getMinutes()).padStart(2, '0');
+          const displayTime = `${yyyy}/${mm}/${dd}${e.iso.length > 10 ? ` ${hh}:${mi}` : ''}`;
 
-        div.innerHTML = `<time>${displayTime}</time><div>${e.label}</div>`;
+          div.innerHTML = `<time>${displayTime}</time><div>${e.label}</div>`;
 
-        const btn = document.createElement("button");
-        btn.textContent = "削除";
-        btn.onclick = () => {
-          if (e.type === "todo") {
-            todos = todos.filter(t => t.id !== e.id);
-            localStorage.setItem("todos", JSON.stringify(todos));
-          } else {
-            events = events.filter(ev => ev.id !== e.id);
-            localStorage.setItem("events", JSON.stringify(events));
-          }
-          location.reload();
-        };
+          const btn = document.createElement("button");
+          btn.textContent = "削除";
+          btn.onclick = () => {
+            if (e.type === "todo") {
+              todos = todos.filter(t => t.id !== e.id);
+              localStorage.setItem("todos", JSON.stringify(todos));
+            } else {
+              events = events.filter(ev => ev.id !== e.id);
+              localStorage.setItem("events", JSON.stringify(events));
+            }
+            location.reload();
+          };
 
-        div.appendChild(btn);
-        list.appendChild(div);
-      });
+          div.appendChild(btn);
+          list.appendChild(div);
+        });
+      }
     }
+
+    filterEntries();
   </script>
 </body>
 </html>
