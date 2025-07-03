@@ -5,19 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>教科ごとのToDo</title>
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
     body {
       font-family: sans-serif;
       margin: 0;
-      padding: 0;
+      padding-bottom: 60px;
       background: #f9f9f9;
       overflow-x: hidden;
     }
-    main {
-      padding: 0 10px;
-    }
+    main { padding: 0 10px; }
     header, footer {
       background: #f0f0f0;
       padding: 10px;
@@ -25,10 +21,7 @@
       justify-content: space-between;
       align-items: center;
     }
-    .menu-button {
-      font-size: 24px;
-      cursor: pointer;
-    }
+    .menu-button { font-size: 24px; cursor: pointer; }
     .menu {
       position: absolute;
       top: 50px;
@@ -47,22 +40,18 @@
       border-bottom: 1px solid #eee;
       display: block;
     }
-    .menu a:hover {
-      background: #f9f9f9;
-    }
+    .menu a:hover { background: #f9f9f9; }
     .card {
       border: 1px solid #ccc;
       margin: 10px 0;
       padding: 10px;
       border-radius: 8px;
       background: #fff;
-      max-width: 100%;
       word-break: break-word;
     }
     .item {
       border-bottom: 1px solid #ccc;
       padding: 6px 0;
-      word-break: break-word;
     }
     input, textarea, select {
       margin: 4px 0;
@@ -106,16 +95,20 @@
   <main>
     <div class="card">
       <h2 id="subject-title">教科のToDo</h2>
-      <input type="text" id="todoContent" placeholder="タイトル">
-      <input type="date" id="todoDate">
-      <input type="time" id="todoTime">
-      <textarea id="todoMemo" placeholder="メモ（任意）"></textarea>
-      <button onclick="addTodo()">登録</button>
+      <select id="entryType">
+        <option value="todo">ToDo</option>
+        <option value="event">イベント</option>
+      </select>
+      <input type="text" id="entryTitle" placeholder="タイトル">
+      <input type="date" id="entryDate">
+      <input type="time" id="entryTime">
+      <textarea id="entryMemo" placeholder="メモ（任意）"></textarea>
+      <button onclick="addEntry()">登録</button>
     </div>
 
     <div class="card">
-      <h3>登録済みのToDo</h3>
-      <div id="todo-list"></div>
+      <h3>登録済みのToDo・イベント</h3>
+      <div id="entry-list"></div>
     </div>
   </main>
 
@@ -146,35 +139,76 @@
     const params = new URLSearchParams(location.search);
     const classId = params.get("classId");
     const classes = JSON.parse(localStorage.getItem("classes") || "[]");
-    const todos = JSON.parse(localStorage.getItem("todos") || "[]");
+    let todos = JSON.parse(localStorage.getItem("todos") || "[]");
+    let events = JSON.parse(localStorage.getItem("events") || "[]");
     const subject = classes.find(c => c.id === classId);
-
     document.getElementById("subject-title").textContent = `${subject.subject} のToDo`;
 
-    function addTodo() {
-      const content = document.getElementById("todoContent").value;
-      const due = document.getElementById("todoDate").value;
-      const time = document.getElementById("todoTime").value;
-      const memo = document.getElementById("todoMemo").value;
-      const todos = JSON.parse(localStorage.getItem("todos") || "[]");
-      todos.push({ id: Date.now(), type: "todo", classId, content, due, time, memo, done: false });
-      localStorage.setItem("todos", JSON.stringify(todos));
+    function addEntry() {
+      const type = document.getElementById("entryType").value;
+      const title = document.getElementById("entryTitle").value;
+      const date = document.getElementById("entryDate").value;
+      const time = document.getElementById("entryTime").value;
+      const memo = document.getElementById("entryMemo").value;
+
+      const id = Date.now();
+      const newItem = type === "todo"
+        ? { id, type: "todo", classId, content: title, due: date, time, memo, done: false }
+        : { id, type: "event", classId, title, date, time, memo };
+
+      const list = JSON.parse(localStorage.getItem(type === "todo" ? "todos" : "events") || "[]");
+      list.push(newItem);
+      localStorage.setItem(type === "todo" ? "todos" : "events", JSON.stringify(list));
       location.reload();
     }
 
-    function deleteTodo(id) {
-      const todos = JSON.parse(localStorage.getItem("todos") || "[]");
-      const filtered = todos.filter(t => t.id !== id);
-      localStorage.setItem("todos", JSON.stringify(filtered));
+    function deleteEntry(type, id) {
+      const key = type === "todo" ? "todos" : "events";
+      const list = JSON.parse(localStorage.getItem(key) || "[]");
+      const filtered = list.filter(e => e.id !== id);
+      localStorage.setItem(key, JSON.stringify(filtered));
       location.reload();
     }
 
-    const list = document.getElementById("todo-list");
+    const entryList = [];
+
     todos.filter(t => t.classId === classId && !t.done).forEach(t => {
+      const iso = t.time ? `${t.due}T${t.time}` : t.due;
+      entryList.push({
+        id: t.id,
+        type: "todo",
+        iso,
+        label: `[ToDo] ${t.content}${t.memo ? `（${t.memo}）` : ''}`
+      });
+    });
+
+    events.filter(e => e.classId === classId).forEach(e => {
+      const iso = e.time ? `${e.date}T${e.time}` : e.date;
+      entryList.push({
+        id: e.id,
+        type: "event",
+        iso,
+        label: `[イベント] ${e.title}${e.memo ? `（${e.memo}）` : ''}`
+      });
+    });
+
+    entryList.sort((a, b) => new Date(a.iso) - new Date(b.iso));
+
+    const container = document.getElementById("entry-list");
+    entryList.forEach(e => {
       const div = document.createElement("div");
       div.className = "item";
-      div.innerHTML = `<strong>${t.content}</strong><br>期限: ${t.due} ${t.time || ''}<br>${t.memo || ''}<br><button onclick="deleteTodo(${t.id})">削除</button>`;
-      list.appendChild(div);
+
+      const d = new Date(e.iso);
+      const dateStr = `${d.getFullYear()}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getDate().toString().padStart(2, '0')}` +
+                      `${e.iso.length > 10 ? ` ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}` : ''}`;
+
+      div.innerHTML = `<time>${dateStr}</time><div>${e.label}</div>`;
+      const btn = document.createElement("button");
+      btn.textContent = "削除";
+      btn.onclick = () => deleteEntry(e.type, e.id);
+      div.appendChild(btn);
+      container.appendChild(div);
     });
   </script>
 </body>

@@ -9,7 +9,7 @@
     body {
       font-family: sans-serif;
       margin: 0;
-      padding: 0;
+      padding-bottom: 60px;
       background: #f9f9f9;
       overflow-x: hidden;
     }
@@ -155,12 +155,15 @@
 
     events.forEach(e => {
       if (e.date >= today) {
+        const className = e.classId ? (classes.find(c => c.id === e.classId)?.subject || "教科なし") : null;
         const isoTime = e.time ? `${e.date}T${e.time}` : e.date;
         entries.push({
           id: e.id,
           type: "event",
           iso: isoTime,
-          label: `[イベント] ${e.title}${e.memo ? `（${e.memo}）` : ''}${e.time && !e.memo ? `（${e.time}）` : ''}`
+          label: className
+            ? `[イベント] (${className})：${e.title}${e.memo ? `（${e.memo}）` : ''}`
+            : `[イベント] ${e.title}${e.memo ? `（${e.memo}）` : ''}${e.time && !e.memo ? `（${e.time}）` : ''}`
         });
       }
     });
