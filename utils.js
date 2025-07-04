@@ -2,6 +2,7 @@ function toggleMenu() {
   const menu = document.getElementById("dropdown-menu");
   menu.style.display = (menu.style.display === "flex") ? "none" : "flex";
 }
+
 // ToDo・イベントの登録（classId は null または指定ID）
 function addEntry(classId = null) {
   const type = document.getElementById("entryType").value;
@@ -22,8 +23,9 @@ function addEntry(classId = null) {
   location.reload();
 }
 
-// ToDo・イベントの削除
+// ToDo・イベントの削除（確認付き）
 function deleteEntry(type, id) {
+  if (!confirm("本当に削除しますか？")) return;
   const key = type === "todo" ? "todos" : "events";
   const list = JSON.parse(localStorage.getItem(key) || "[]");
   const filtered = list.filter(e => e.id !== id);

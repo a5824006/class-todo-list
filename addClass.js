@@ -26,7 +26,7 @@ function addClass() {
   const weekdayInput = prompt("曜日を入力してください（例: 月, 火曜, 水曜日）:");
   const weekday = normalizeWeekday(weekdayInput);
   if (!weekday) {
-    alert("正しい曜日を入力してください（例: 月, 火曜日）");
+    alert("正しい曜日を入力してください");
     return;
   }
 
@@ -37,9 +37,22 @@ function addClass() {
     return;
   }
 
+  const durationInput = prompt("2限連続の場合は2を入力してください（それ以外は空欄でOKを押してください）：") || "1";
+  const duration = (durationInput.trim() === "2") ? 2 : 1;
+
+  const room = prompt("教室を入力してください（任意）：") || "";
+
   const classId = subject + '-' + weekday + '-' + period;
   const classes = JSON.parse(localStorage.getItem("classes") || "[]");
-  classes.push({ type: "class", subject, weekday, period, id: classId });
+  classes.push({
+    type: "class",
+    subject,
+    weekday,
+    period,
+    duration,
+    room,
+    id: classId
+  });
   localStorage.setItem("classes", JSON.stringify(classes));
   location.reload();
 }

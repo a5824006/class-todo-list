@@ -58,6 +58,7 @@
 
   <script>
     function deleteClass(classId) {
+      if (!confirm("本当に削除しますか？")) return;
       const classes = JSON.parse(localStorage.getItem("classes") || "[]");
       const filtered = classes.filter(c => c.id !== classId);
       localStorage.setItem("classes", JSON.stringify(filtered));
@@ -83,8 +84,18 @@
       const currentBox = document.getElementById("current-class");
       const nowMin = now.getHours() * 60 + now.getMinutes();
       const currentSubjects = classes.filter(c => {
-        const range = schedule[c.period - 1];
-        return c.weekday === now.getDay() && nowMin >= range[0] - 90 && nowMin <= range[1] + 90;
+        const dur = c.duration || 1;  // デフォルト1
+        let inRange = false;
+        for (let i = 0; i < dur; i++) {
+          const periodIndex = c.period - 1 + i;
+          const range = schedule[periodIndex];
+          if (!range) continue;
+          if (nowMin >= range[0] - 90 && nowMin <= range[1] + 90) {
+            inRange = true;
+            break;
+          }
+        }
+        return c.weekday === now.getDay() && inRange;
       });
 
       if (currentSubjects.length > 0) {
@@ -93,8 +104,11 @@
         currentSubjects.forEach(c => {
           const p = document.createElement("p");
           const a = document.createElement("a");
+          const roomText = c.room ? ` @${c.room}` : "";
+          const duration = c.duration || 1;
+          const periodText = duration === 2 ? `${c.period},${c.period + 1}限` : `${c.period}限`;
           a.href = `subject.html?classId=${c.id}`;
-          a.textContent = `${c.subject}（${['月','火','水','木','金'][c.weekday - 1]}${c.period}限）`;
+          a.textContent = `${c.subject}（${['月','火','水','木','金'][c.weekday - 1]}${periodText}${roomText}）`;
           p.appendChild(a);
           currentBox.appendChild(p);
         });
@@ -128,9 +142,14 @@
       classes.forEach(c => {
         const li = document.createElement("li");
         li.className = "class-item";
-        li.innerHTML = `<span onclick="location.href='subject.html?classId=${c.id}'">${c.subject}（${['月','火','水','木','金'][c.weekday - 1]}${c.period}限）</span> <button onclick="deleteClass('${c.id}')">削除</button>`;
+        const duration = c.duration || 1;
+        const room = c.room ? ` @${c.room}` : "";
+        const periodText = (duration === 2) ? `${c.period},${c.period + 1}限` : `${c.period}限`;
+        const weekdayText = ['月','火','水','木','金'][c.weekday - 1];
+        li.innerHTML = `<span onclick="location.href='subject.html?classId=${c.id}'">${c.subject}（${weekdayText}${periodText}${room}）</span> <button onclick="deleteClass('${c.id}')">削除</button>`;
         classList.appendChild(li);
       });
+
     }
 
     window.onload = loadPage;
