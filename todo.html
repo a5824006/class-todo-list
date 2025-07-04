@@ -72,7 +72,7 @@
           id: e.id,
           type: "event",
           iso: isoTime,
-          label: `[イベント] ${className ? `(${className})：` : ''}${e.title}${e.memo ? `（${e.memo}）` : ''}${e.time && !e.memo ? `（${e.time}）` : ''}`
+          label: `[イベント] ${className ? `${className}：` : ''}${e.title}${e.memo ? `（${e.memo}）` : ''}`
         });
       }
     });
