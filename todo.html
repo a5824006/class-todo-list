@@ -53,7 +53,7 @@
 
     todos.forEach(t => {
       if (!t.done && t.due >= today) {
-        const className = classes.find(c => c.id === t.classId)?.subject || "教科なし";
+        const className = classes.find(c => c.id === t.classId)?.subject || "";
         const isoTime = t.time ? `${t.due}T${t.time}` : t.due;
         entries.push({
           id: t.id,
@@ -66,7 +66,7 @@
 
     events.forEach(e => {
       if (e.date >= today) {
-        const className = classes.find(c => c.id === e.classId)?.subject || "教科なし";
+        const className = classes.find(c => c.id === e.classId)?.subject || "";
         const isoTime = e.time ? `${e.date}T${e.time}` : e.date;
         entries.push({
           id: e.id,
