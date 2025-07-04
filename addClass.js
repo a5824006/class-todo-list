@@ -42,8 +42,14 @@ function addClass() {
 
   const room = prompt("教室を入力してください（任意）：") || "";
 
-  const classId = subject + '-' + weekday + '-' + period;
+  const classId = `${subject.trim()}_${weekday}_${period}_${room || "none"}`;
   const classes = JSON.parse(localStorage.getItem("classes") || "[]");
+  const exists = classes.some(c => c.id === classId);
+  if (exists) {
+    alert("同じ教科はすでに登録されています。");
+    return;
+  }
+
   classes.push({
     type: "class",
     subject,
