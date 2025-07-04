@@ -29,7 +29,7 @@
       <input type="date" id="entryDate">
       <input type="time" id="entryTime">
       <textarea id="entryMemo" placeholder="メモ（任意）"></textarea>
-      <button onclick="addEntry()">登録</button>
+      <button onclick="addEntry(classId)">登録</button>
     </div>
 
     <div class="card">
@@ -44,8 +44,10 @@
     <a href="#" onclick="addClass()">➕</a>
   </footer>
 
+  <!-- 共通JS読み込み -->
   <script src="addClass.js"></script>
   <script src="toggleMenu.js"></script>
+  <script src="utils.js"></script>
 
   <script>
     const params = new URLSearchParams(location.search);
@@ -57,33 +59,6 @@
     const subject = classes.find(c => c.id === classId);
     if (subject) {
       document.getElementById("subject-title").textContent = `${subject.subject} のToDo`;
-    }
-
-    function addEntry() {
-      const type = document.getElementById("entryType").value;
-      const title = document.getElementById("entryTitle").value;
-      const date = document.getElementById("entryDate").value;
-      const time = document.getElementById("entryTime").value;
-      const memo = document.getElementById("entryMemo").value;
-
-      const id = Date.now();
-      const newItem = type === "todo"
-        ? { id, type: "todo", classId, content: title, due: date, time, memo, done: false }
-        : { id, type: "event", classId, title, date, time, memo };
-
-      const key = type === "todo" ? "todos" : "events";
-      const list = JSON.parse(localStorage.getItem(key) || "[]");
-      list.push(newItem);
-      localStorage.setItem(key, JSON.stringify(list));
-      location.reload();
-    }
-
-    function deleteEntry(type, id) {
-      const key = type === "todo" ? "todos" : "events";
-      const list = JSON.parse(localStorage.getItem(key) || "[]");
-      const filtered = list.filter(e => e.id !== id);
-      localStorage.setItem(key, JSON.stringify(filtered));
-      location.reload();
     }
 
     const entryList = [];

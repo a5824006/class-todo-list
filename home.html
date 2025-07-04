@@ -55,27 +55,13 @@
 
   <script src="addClass.js"></script>
   <script src="toggleMenu.js"></script>
+  <script src="utils.js"></script>
 
   <script>
     function deleteClass(classId) {
       const classes = JSON.parse(localStorage.getItem("classes") || "[]");
       const filtered = classes.filter(c => c.id !== classId);
       localStorage.setItem("classes", JSON.stringify(filtered));
-      location.reload();
-    }
-
-    function addEntry() {
-      const type = document.getElementById("entryType").value;
-      const title = document.getElementById("entryTitle").value;
-      const date = document.getElementById("entryDate").value;
-      const time = document.getElementById("entryTime").value;
-      const memo = document.getElementById("entryMemo").value;
-      const list = JSON.parse(localStorage.getItem(type === "todo" ? "todos" : "events") || "[]");
-      const newItem = type === "todo"
-        ? { id: Date.now(), type: "todo", classId: null, content: title, due: date, time, memo, done: false }
-        : { id: Date.now(), type: "event", title, date, time, memo };
-      list.push(newItem);
-      localStorage.setItem(type === "todo" ? "todos" : "events", JSON.stringify(list));
       location.reload();
     }
 
@@ -93,8 +79,8 @@
       localStorage.setItem("todos", JSON.stringify(todos));
       localStorage.setItem("events", JSON.stringify(events));
 
+      // 今の時間に近い教科
       const schedule = [[540, 630], [660, 750], [800, 890], [905, 995], [1010, 1100], [1110, 1200]];
-
       const currentBox = document.getElementById("current-class");
       const nowMin = now.getHours() * 60 + now.getMinutes();
       const currentSubjects = classes.filter(c => {
@@ -115,25 +101,30 @@
         });
       }
 
+      // 今日の予定
       const todayList = document.getElementById("today-list");
       const emptyToday = document.getElementById("empty-today");
       let hasToday = false;
+
       todos.filter(t => t.due === today && !t.done).forEach(t => {
         const li = document.createElement("li");
         li.textContent = `[ToDo] ${t.content}（${t.time || ''} ${t.memo || ''}）`;
         todayList.appendChild(li);
         hasToday = true;
       });
+
       events.filter(e => e.date === today).forEach(e => {
         const li = document.createElement("li");
         li.textContent = `[イベント] ${e.title}（${e.time || ''} ${e.memo || ''}）`;
         todayList.appendChild(li);
         hasToday = true;
       });
+
       if (!hasToday) {
         emptyToday.style.display = "block";
       }
 
+      // 教科一覧
       const classList = document.getElementById("class-list");
       classes.forEach(c => {
         const li = document.createElement("li");
