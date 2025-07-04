@@ -11,6 +11,11 @@ function addEntry(classId = null) {
   const time = document.getElementById("entryTime").value;
   const memo = document.getElementById("entryMemo").value;
 
+  if (!title || !date) {
+    alert("タイトルと日付は必須です。");
+    return;
+  }
+  
   const id = Date.now();
   const newItem = type === "todo"
     ? { id, type: "todo", classId, content: title, due: date, time, memo, done: false }
