@@ -4,81 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>教科ごとのToDo</title>
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      font-family: sans-serif;
-      margin: 0;
-      padding-bottom: 60px;
-      background: #f9f9f9;
-      overflow-x: hidden;
-    }
-    main { padding: 0 10px; }
-    header, footer {
-      background: #f0f0f0;
-      padding: 10px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .menu-button { font-size: 24px; cursor: pointer; }
-    .menu {
-      position: absolute;
-      top: 50px;
-      right: 10px;
-      background: white;
-      border: 1px solid #ccc;
-      display: none;
-      flex-direction: column;
-      z-index: 10;
-      min-width: 140px;
-    }
-    .menu a {
-      padding: 10px;
-      text-decoration: none;
-      color: #333;
-      border-bottom: 1px solid #eee;
-      display: block;
-    }
-    .menu a:hover { background: #f9f9f9; }
-    .card {
-      border: 1px solid #ccc;
-      margin: 10px 0;
-      padding: 10px;
-      border-radius: 8px;
-      background: #fff;
-      word-break: break-word;
-    }
-    .item {
-      border-bottom: 1px solid #ccc;
-      padding: 6px 0;
-    }
-    input, textarea, select {
-      margin: 4px 0;
-      width: 100%;
-      padding: 6px;
-    }
-    button {
-      padding: 6px 12px;
-      margin-top: 8px;
-    }
-    .bottom-nav {
-      position: fixed;
-      bottom: 0;
-      width: 100%;
-      background: #f2f2f2;
-      display: flex;
-      justify-content: space-around;
-      padding: 10px 0;
-      border-top: 1px solid #ccc;
-      z-index: 5;
-    }
-    .bottom-nav a {
-      font-size: 24px;
-      color: #333;
-      text-decoration: none;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css" />
   <script src="addClass.js"></script>
 </head>
 <body>
@@ -128,10 +54,13 @@
     const params = new URLSearchParams(location.search);
     const classId = params.get("classId");
     const classes = JSON.parse(localStorage.getItem("classes") || "[]");
-    let todos = JSON.parse(localStorage.getItem("todos") || "[]");
-    let events = JSON.parse(localStorage.getItem("events") || "[]");
+    const todos = JSON.parse(localStorage.getItem("todos") || "[]");
+    const events = JSON.parse(localStorage.getItem("events") || "[]");
+
     const subject = classes.find(c => c.id === classId);
-    document.getElementById("subject-title").textContent = `${subject.subject} のToDo`;
+    if (subject) {
+      document.getElementById("subject-title").textContent = `${subject.subject} のToDo`;
+    }
 
     function addEntry() {
       const type = document.getElementById("entryType").value;
@@ -145,9 +74,10 @@
         ? { id, type: "todo", classId, content: title, due: date, time, memo, done: false }
         : { id, type: "event", classId, title, date, time, memo };
 
-      const list = JSON.parse(localStorage.getItem(type === "todo" ? "todos" : "events") || "[]");
+      const key = type === "todo" ? "todos" : "events";
+      const list = JSON.parse(localStorage.getItem(key) || "[]");
       list.push(newItem);
-      localStorage.setItem(type === "todo" ? "todos" : "events", JSON.stringify(list));
+      localStorage.setItem(key, JSON.stringify(list));
       location.reload();
     }
 
@@ -189,8 +119,8 @@
       div.className = "item";
 
       const d = new Date(e.iso);
-      const dateStr = `${d.getFullYear()}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getDate().toString().padStart(2, '0')}` +
-                      `${e.iso.length > 10 ? ` ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}` : ''}`;
+      const dateStr = `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}` +
+                      `${e.iso.length > 10 ? ` ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}` : ''}`;
 
       div.innerHTML = `<time>${dateStr}</time><div>${e.label}</div>`;
       const btn = document.createElement("button");

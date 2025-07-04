@@ -4,95 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>MyStudy - 時間順ToDo</title>
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      font-family: sans-serif;
-      margin: 0;
-      padding-bottom: 60px;
-      background: #f9f9f9;
-      overflow-x: hidden;
-    }
-    main {
-      padding: 0 10px;
-    }
-    header, footer {
-      background: #f0f0f0;
-      padding: 10px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .menu-button {
-      font-size: 24px;
-      cursor: pointer;
-    }
-    .menu {
-      position: absolute;
-      top: 50px;
-      right: 10px;
-      background: white;
-      border: 1px solid #ccc;
-      display: none;
-      flex-direction: column;
-      z-index: 10;
-      width: 160px;
-    }
-    .menu a {
-      padding: 10px;
-      text-decoration: none;
-      color: #333;
-      border-bottom: 1px solid #eee;
-    }
-    .menu a:hover { background: #f9f9f9; }
-    .card {
-      border: 1px solid #ccc;
-      margin: 10px 0;
-      padding: 10px;
-      border-radius: 8px;
-      background: #fff;
-      max-width: 100%;
-      word-break: break-word;
-    }
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .item {
-      padding: 8px;
-      border-bottom: 1px solid #ccc;
-      word-break: break-word;
-    }
-    .item time {
-      font-weight: bold;
-      display: block;
-    }
-    .item button {
-      margin-top: 4px;
-    }
-    .bottom-nav {
-      position: fixed;
-      bottom: 0;
-      width: 100%;
-      background: #f2f2f2;
-      display: flex;
-      justify-content: space-around;
-      padding: 10px 0;
-      border-top: 1px solid #ccc;
-      z-index: 5;
-    }
-    .bottom-nav a {
-      font-size: 24px;
-      color: #333;
-      text-decoration: none;
-    }
-    #empty-message {
-      color: #777;
-      text-align: left;
-      margin-top: 10px;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css" />
+  <script src="addClass.js"></script>
 </head>
 <body>
   <header>
@@ -127,7 +40,6 @@
     <a href="#" onclick="addClass()">➕</a>
   </footer>
 
-  <script src="addClass.js"></script>
   <script>
     function toggleMenu() {
       const menu = document.getElementById("dropdown-menu");
@@ -174,6 +86,7 @@
       const list = document.getElementById("sorted-list");
       const emptyMessage = document.getElementById("empty-message");
       list.innerHTML = "";
+
       const filtered = entries.filter(e => type === "all" || e.type === type);
 
       if (filtered.length === 0) {
