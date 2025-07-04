@@ -139,6 +139,10 @@
 
       // 教科一覧
       const classList = document.getElementById("class-list");
+      classes.sort((a, b) => {
+        if (a.weekday !== b.weekday) return a.weekday - b.weekday;
+        return a.period - b.period;
+      });
       classes.forEach(c => {
         const li = document.createElement("li");
         li.className = "class-item";
