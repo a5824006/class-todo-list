@@ -5,9 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>MyStudy - ホーム</title>
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
     body {
       font-family: sans-serif;
       margin: 0;
@@ -22,10 +20,7 @@
       justify-content: space-between;
       align-items: center;
     }
-    .menu-button {
-      font-size: 24px;
-      cursor: pointer;
-    }
+    .menu-button { font-size: 24px; cursor: pointer; }
     .menu {
       position: absolute;
       top: 50px;
@@ -43,9 +38,7 @@
       color: #333;
       border-bottom: 1px solid #eee;
     }
-    .menu a:hover {
-      background: #f9f9f9;
-    }
+    .menu a:hover { background: #f9f9f9; }
     .card {
       border: 1px solid #ccc;
       margin: 10px;
@@ -149,22 +142,11 @@
     <a href="#" onclick="addClass()">➕</a>
   </footer>
 
+  <script src="addClass.js"></script>
   <script>
     function toggleMenu() {
       const menu = document.getElementById("dropdown-menu");
       menu.style.display = (menu.style.display === "flex") ? "none" : "flex";
-    }
-
-    function addClass() {
-      const subject = prompt("教科名を入力してください：");
-      if (!subject) return;
-      const weekday = prompt("曜日番号を入力（1=月〜5=金）：");
-      const period = prompt("時限を入力（1〜6）：");
-      const classId = subject + '-' + weekday + '-' + period;
-      const classes = JSON.parse(localStorage.getItem("classes") || "[]");
-      classes.push({ type: "class", subject, weekday: parseInt(weekday), period: parseInt(period), id: classId });
-      localStorage.setItem("classes", JSON.stringify(classes));
-      location.reload();
     }
 
     function deleteClass(classId) {
@@ -203,9 +185,7 @@
       localStorage.setItem("todos", JSON.stringify(todos));
       localStorage.setItem("events", JSON.stringify(events));
 
-      const schedule = [
-        [540, 630], [660, 750], [800, 890], [905, 995], [1010, 1100], [1110, 1200]
-      ];
+      const schedule = [[540, 630], [660, 750], [800, 890], [905, 995], [1010, 1100], [1110, 1200]];
 
       const currentBox = document.getElementById("current-class");
       const nowMin = now.getHours() * 60 + now.getMinutes();

@@ -127,22 +127,11 @@
     <a href="#" onclick="addClass()">➕</a>
   </footer>
 
+  <script src="addClass.js"></script>
   <script>
     function toggleMenu() {
       const menu = document.getElementById("dropdown-menu");
       menu.style.display = (menu.style.display === "flex") ? "none" : "flex";
-    }
-
-    function addClass() {
-      const subject = prompt("教科名を入力してください：");
-      if (!subject) return;
-      const weekday = prompt("曜日番号を入力（1=月〜5=金）：");
-      const period = prompt("時限を入力（1〜6）：");
-      const classId = subject + '-' + weekday + '-' + period;
-      const classes = JSON.parse(localStorage.getItem("classes") || "[]");
-      classes.push({ type: "class", subject, weekday: parseInt(weekday), period: parseInt(period), id: classId });
-      localStorage.setItem("classes", JSON.stringify(classes));
-      location.reload();
     }
 
     const classes = JSON.parse(localStorage.getItem("classes") || "[]");
