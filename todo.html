@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>MyStudy - 時間順ToDo</title>
   <link rel="stylesheet" href="style.css" />
-  <script src="addClass.js"></script>
 </head>
 <body>
   <header>
@@ -40,12 +39,10 @@
     <a href="#" onclick="addClass()">➕</a>
   </footer>
 
-  <script>
-    function toggleMenu() {
-      const menu = document.getElementById("dropdown-menu");
-      menu.style.display = (menu.style.display === "flex") ? "none" : "flex";
-    }
+  <script src="addClass.js"></script>
+  <script src="toggleMenu.js"></script>
 
+  <script>
     const classes = JSON.parse(localStorage.getItem("classes") || "[]");
     let todos = JSON.parse(localStorage.getItem("todos") || "[]");
     let events = JSON.parse(localStorage.getItem("events") || "[]");
@@ -97,15 +94,11 @@
           const div = document.createElement("div");
           div.className = "item";
 
-          const dateObj = new Date(e.iso);
-          const yyyy = dateObj.getFullYear();
-          const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
-          const dd = String(dateObj.getDate()).padStart(2, '0');
-          const hh = String(dateObj.getHours()).padStart(2, '0');
-          const mi = String(dateObj.getMinutes()).padStart(2, '0');
-          const displayTime = `${yyyy}/${mm}/${dd}${e.iso.length > 10 ? ` ${hh}:${mi}` : ''}`;
+          const d = new Date(e.iso);
+          const dateStr = `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}` +
+                          `${e.iso.length > 10 ? ` ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}` : ''}`;
 
-          div.innerHTML = `<time>${displayTime}</time><div>${e.label}</div>`;
+          div.innerHTML = `<time>${dateStr}</time><div>${e.label}</div>`;
 
           const btn = document.createElement("button");
           btn.textContent = "削除";

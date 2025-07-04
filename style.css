@@ -35,7 +35,7 @@ header, footer {
   flex-direction: column;
   z-index: 10;
   min-width: 140px;
-  width: 160px; /* 両方で統一 */
+  width: 160px;
 }
 
 .menu a {
@@ -87,4 +87,47 @@ button {
   font-size: 24px;
   color: #333;
   text-decoration: none;
+}
+
+/* --- 以下、home.html にしかないが他に影響しないのでOK --- */
+.class-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+  word-break: break-word;
+}
+
+.class-item button {
+  margin-left: 10px;
+}
+
+.class-item span {
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+time {
+  display: block;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+}
+
+/* --- subject.html にしかないが共通化してよい --- */
+.item {
+  padding: 8px;
+  border-bottom: 1px solid #ccc;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+#empty-message {
+  color: #777;
+  text-align: left;
+  margin-top: 10px;
 }

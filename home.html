@@ -54,12 +54,9 @@
   </footer>
 
   <script src="addClass.js"></script>
-  <script>
-    function toggleMenu() {
-      const menu = document.getElementById("dropdown-menu");
-      menu.style.display = (menu.style.display === "flex") ? "none" : "flex";
-    }
+  <script src="toggleMenu.js"></script>
 
+  <script>
     function deleteClass(classId) {
       const classes = JSON.parse(localStorage.getItem("classes") || "[]");
       const filtered = classes.filter(c => c.id !== classId);
