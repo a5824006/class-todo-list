@@ -30,7 +30,7 @@ function addClass() {
     return;
   }
 
-  const periodInput = prompt("時限を入力してください（1〜6）:");
+  const periodInput = prompt("開始する時限を入力してください（1〜6）:");
   const period = normalizePeriod(periodInput);
   if (!period) {
     alert("正しい時限を1〜6の数字で入力してください。");
