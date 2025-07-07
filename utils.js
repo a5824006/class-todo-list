@@ -340,14 +340,11 @@ document.addEventListener("keydown", function(e) {
 
 function getDateTime(dateStr, timeStr) {
   if (timeStr && timeStr.trim() !== "") {
-    return new Date(`${dateStr}T${timeStr}`);
+    return new Date(`${dateStr}T${timeStr}+09:00`);
   } else {
-    const d = new Date(`${dateStr}T00:00`);
-    d.setHours(23, 59, 59, 999);
-    return d;
+    return new Date(`${dateStr}T23:59:59.999+09:00`);
   }
 }
-
 
 function removeExpiredEntries(todos, events) {
   const now = new Date().getTime();
