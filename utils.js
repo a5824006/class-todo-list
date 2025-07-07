@@ -74,7 +74,7 @@ function injectClassEditModal() {
         <input type="text" id="classSubject" placeholder="教科名">
         <input type="text" id="classWeekday" placeholder="曜日（例：月, 火曜）">
         <input type="number" id="classPeriod" placeholder="開始時限（1〜6）" min="1" max="6">
-        <input type="number" id="classDuration" placeholder="連続数（通常1, 2なら2限連続）" min="1" max="2">
+        <input type="number" id="classDuration" placeholder="授業のコマ数（2なら2限連続）" min="1" max="2">
         <input type="text" id="classRoom" placeholder="教室（任意）">
         <div class="modal-buttons">
           <button onclick="saveEditedClass()">OK</button>
