@@ -55,11 +55,9 @@
 
   <script src="utils.js"></script>
   <script>
-    injectEditModal();         // 予定編集用
-    injectClassEditModal();    // 教科編集用
-  </script>
+    injectEditModal();
+    injectClassEditModal();
 
-  <script>
     function deleteClass(classId) {
       if (!confirm("本当に削除しますか？")) return;
       const classes = JSON.parse(localStorage.getItem("classes") || "[]");
@@ -72,13 +70,19 @@
       const classes = JSON.parse(localStorage.getItem("classes") || "[]");
       let todos = JSON.parse(localStorage.getItem("todos") || "[]");
       let events = JSON.parse(localStorage.getItem("events") || "[]");
+
+      // 今日の日付（JSTベース）
       const now = new Date();
-      const today = now.toISOString().split("T")[0];
+      const yyyy = now.getFullYear();
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      const dd = String(now.getDate()).padStart(2, '0');
+      const today = `${yyyy}-${mm}-${dd}`;
       const nowTime = now.getTime();
 
-      // 期限切れ削除
-      todos = todos.filter(t => new Date(t.due + "T" + (t.time || "00:00")).getTime() >= nowTime);
-      events = events.filter(e => new Date(e.date + "T" + (e.time || "00:00")).getTime() >= nowTime);
+      // ★期限切れ削除
+      const cleaned = removeExpiredEntries(todos, events);
+      todos = cleaned.todos;
+      events = cleaned.events;
       localStorage.setItem("todos", JSON.stringify(todos));
       localStorage.setItem("events", JSON.stringify(events));
 
@@ -117,65 +121,65 @@
         });
       }
 
-      // 今日の予定
+      // 今日の予定 (ToDo + イベント) を時刻順に
       const todayList = document.getElementById("today-list");
       const emptyToday = document.getElementById("empty-today");
-      let hasToday = false;
+      todayList.innerHTML = "";
+
+      const entries = [];
 
       todos.filter(t => t.due === today && !t.done).forEach(t => {
-        const li = document.createElement("li");
-        li.className = "item";
-
-        const label = `[ToDo] ${t.content}（${t.time || ''} ${t.memo || ''}）`;
-        const div = document.createElement("div");
-        div.textContent = label;
-
-        const editBtn = document.createElement("button");
-        editBtn.textContent = "編集";
-        editBtn.onclick = () => openEditModal("todo", t.id);
-
-        const deleteBtn = document.createElement("button");
-        deleteBtn.textContent = "削除";
-        deleteBtn.onclick = () => deleteEntry("todo", t.id);
-
-        li.appendChild(div);
-        li.appendChild(editBtn);
-        li.appendChild(deleteBtn);
-
-        todayList.appendChild(li);
-        hasToday = true;
+        const subject = classes.find(c => c.id === t.classId)?.subject || "";
+        entries.push({
+          id: t.id,
+          type: "todo",
+          iso: getDateTime(t.due, t.time),
+          label: `[ToDo] ${subject ? subject + "：" : ""}${t.time ? t.time + " " : ""}${t.content}${t.memo ? `（${t.memo}）` : ""}`
+        });
       });
 
       events.filter(e => e.date === today).forEach(e => {
-        const li = document.createElement("li");
-        li.className = "item";
-
-        const label = `[イベント] ${e.title}（${e.time || ''} ${e.memo || ''}）`;
-        const div = document.createElement("div");
-        div.textContent = label;
-
-        const editBtn = document.createElement("button");
-        editBtn.textContent = "編集";
-        editBtn.onclick = () => openEditModal("event", e.id);
-
-        const deleteBtn = document.createElement("button");
-        deleteBtn.textContent = "削除";
-        deleteBtn.onclick = () => deleteEntry("event", e.id);
-
-        li.appendChild(div);
-        li.appendChild(editBtn);
-        li.appendChild(deleteBtn);
-
-        todayList.appendChild(li);
-        hasToday = true;
+        const subject = classes.find(c => c.id === e.classId)?.subject || "";
+        entries.push({
+          id: e.id,
+          type: "event",
+          iso: getDateTime(e.date, e.time),
+          label: `[イベント] ${subject ? subject + "：" : ""}${e.time ? e.time + " " : ""}${e.title}${e.memo ? `（${e.memo}）` : ""}`
+        });
       });
 
-      if (!hasToday) {
+      // 時刻順
+      entries.sort((a, b) => a.iso - b.iso);
+
+      if (entries.length === 0) {
         emptyToday.style.display = "block";
+      } else {
+        emptyToday.style.display = "none";
+        entries.forEach(e => {
+          const li = document.createElement("li");
+          li.className = "item";
+
+          const div = document.createElement("div");
+          div.textContent = e.label;
+
+          const editBtn = document.createElement("button");
+          editBtn.textContent = "編集";
+          editBtn.onclick = () => openEditModal(e.type, e.id);
+
+          const deleteBtn = document.createElement("button");
+          deleteBtn.textContent = "削除";
+          deleteBtn.onclick = () => deleteEntry(e.type, e.id);
+
+          li.appendChild(div);
+          li.appendChild(editBtn);
+          li.appendChild(deleteBtn);
+          todayList.appendChild(li);
+        });
       }
 
       // 教科一覧
       const classList = document.getElementById("class-list");
+      classList.innerHTML = "";
       classes.sort((a, b) => {
         if (a.weekday !== b.weekday) return a.weekday - b.weekday;
         return a.period - b.period;
@@ -183,14 +187,14 @@
       classes.forEach(c => {
         const li = document.createElement("li");
         li.className = "class-item";
-        li.style.display = "grid";                       // グリッドで左右分割
-        li.style.gridTemplateColumns = "1fr auto";       // 左: 教科名, 右: ボタン
-        li.style.alignItems = "center";                  // ボタンを縦中央に揃える
-        li.style.columnGap = "8px";                      // 間隔を少しだけ空ける
+        li.style.display = "grid";
+        li.style.gridTemplateColumns = "1fr auto";
+        li.style.alignItems = "center";
+        li.style.columnGap = "8px";
 
         const duration = c.duration || 1;
         const room = c.room ? ` @${c.room}` : "";
-        const periodText = (duration === 2) ? `${c.period},${c.period + 1}限` : `${c.period}限`;
+        const periodText = duration === 2 ? `${c.period},${c.period + 1}限` : `${c.period}限`;
         const weekdayText = ['月','火','水','木','金'][c.weekday - 1];
 
         const span = document.createElement("span");
@@ -201,7 +205,7 @@
 
         const buttons = document.createElement("div");
         buttons.style.display = "flex";
-        buttons.style.gap = "0"; // 編集・削除ボタンの間隔ゼロ
+        buttons.style.gap = "0";
 
         const editBtn = document.createElement("button");
         editBtn.textContent = "編集";

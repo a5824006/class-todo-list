@@ -333,3 +333,16 @@ document.addEventListener("keydown", function(e) {
     active.blur();            // 入力終了（フォーカス解除）
   }
 });
+
+function getDateTime(dateStr, timeStr) {
+  const time = timeStr && timeStr.trim() !== "" ? timeStr : "24:00";
+  return new Date(`${dateStr}T${time}`);
+}
+
+function removeExpiredEntries(todos, events) {
+  const now = new Date().getTime();
+  const filteredTodos = todos.filter(t => getDateTime(t.due, t.time).getTime() >= now);
+  const filteredEvents = events.filter(e => getDateTime(e.date, e.time).getTime() >= now);
+  return { todos: filteredTodos, events: filteredEvents };
+}
+
