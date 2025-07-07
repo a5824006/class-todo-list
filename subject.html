@@ -98,24 +98,40 @@
     if (entryList.length === 0) {
       document.getElementById("empty-subject").style.display = "block";
     } else {
+      const container = document.getElementById("entry-list");
+      container.innerHTML = "";
       entryList.forEach(e => {
+        // ISOタイムスタンプを Date オブジェクトに
+        const d = new Date(e.iso);
+
+        // time プロパティが文字列かつ空でないかで「時刻あり」を判定
+        const hasTime = typeof e.time === 'string' && e.time.trim() !== '';
+
+        // 日付文字列（必要なら時刻も付加）
+        const dateStr =
+          `${d.getFullYear()}/` +
+          `${String(d.getMonth() + 1).padStart(2, '0')}/` +
+          `${String(d.getDate()).padStart(2, '0')}` +
+          (hasTime
+            ? ` ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+            : '');
+
+        // 要素作成
         const div = document.createElement("div");
         div.className = "item";
-
-        const d = new Date(e.iso);
-        const dateStr = `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}` +
-                        `${e.iso.length > 10 ? ` ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}` : ''}`;
-
         div.innerHTML = `<time>${dateStr}</time><div>${e.label}</div>`;
 
+        // 編集ボタン
         const editBtn = document.createElement("button");
         editBtn.textContent = "編集";
         editBtn.onclick = () => openEditModal(e.type, e.id);
 
+        // 削除ボタン
         const deleteBtn = document.createElement("button");
         deleteBtn.textContent = "削除";
         deleteBtn.onclick = () => deleteEntry(e.type, e.id);
 
+        // ボタンを追加して DOM 反映
         div.appendChild(editBtn);
         div.appendChild(deleteBtn);
         container.appendChild(div);
