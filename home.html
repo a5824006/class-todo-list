@@ -79,7 +79,7 @@
       const today = `${yyyy}-${mm}-${dd}`;
       const nowTime = now.getTime();
 
-      // ★期限切れ削除
+      // 期限切れ削除
       const cleaned = removeExpiredEntries(todos, events);
       todos = cleaned.todos;
       events = cleaned.events;

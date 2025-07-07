@@ -57,6 +57,13 @@
     const todos = JSON.parse(localStorage.getItem("todos") || "[]");
     const events = JSON.parse(localStorage.getItem("events") || "[]");
 
+    // 期限切れ削除
+    const cleaned = removeExpiredEntries(todos, events);
+    todos = cleaned.todos;
+    events = cleaned.events;
+    localStorage.setItem("todos", JSON.stringify(todos));
+    localStorage.setItem("events", JSON.stringify(events));
+
     const subject = classes.find(c => c.id === classId);
     if (subject) {
       const weekdayText = ['月','火','水','木','金'][subject.weekday - 1];
