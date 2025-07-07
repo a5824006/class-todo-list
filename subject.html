@@ -75,21 +75,19 @@
     const entryList = [];
 
     todos.filter(t => t.classId === classId && !t.done).forEach(t => {
-      const iso = t.time ? `${t.due}T${t.time}` : t.due;
       entryList.push({
         id: t.id,
         type: "todo",
-        iso,
+        iso: getDateTime(t.due, t.time).getTime(),
         label: `[ToDo] ${t.content}${t.memo ? `（${t.memo}）` : ''}`
       });
     });
 
     events.filter(e => e.classId === classId).forEach(e => {
-      const iso = e.time ? `${e.date}T${e.time}` : e.date;
       entryList.push({
         id: e.id,
         type: "event",
-        iso,
+        iso: getDateTime(e.date, e.time).getTime(),
         label: `[イベント] ${e.title}${e.memo ? `（${e.memo}）` : ''}`
       });
     });

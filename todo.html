@@ -39,27 +39,30 @@
     <a href="#" onclick="addClass()">➕</a>
   </footer>
 
-  <!-- 共通スクリプト -->
   <script src="utils.js"></script>
-  <script>injectEditModal();</script>
-
   <script>
+    injectEditModal();
+
     const classes = JSON.parse(localStorage.getItem("classes") || "[]");
     const todos = JSON.parse(localStorage.getItem("todos") || "[]");
     const events = JSON.parse(localStorage.getItem("events") || "[]");
-    const today = new Date().toISOString().split("T")[0];
+
+    const now = new Date();
+    const yyyy = now.getFullYear();
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    const today = `${yyyy}-${mm}-${dd}`; // JST基準
 
     const entries = [];
 
     todos.forEach(t => {
       if (!t.done && t.due >= today) {
         const className = classes.find(c => c.id === t.classId)?.subject || "";
-        const isoTime = t.time ? `${t.due}T${t.time}` : t.due;
         entries.push({
           id: t.id,
           type: "todo",
-          iso: isoTime,
-          label: `[ToDo] ${className}：${t.content}${t.memo ? `（${t.memo}）` : ''}`
+          time: getDateTime(t.due, t.time).getTime(),
+          label: `[ToDo] ${className ? `${className}：` : ""}${t.content}${t.memo ? `（${t.memo}）` : ""}`
         });
       }
     });
@@ -67,17 +70,16 @@
     events.forEach(e => {
       if (e.date >= today) {
         const className = classes.find(c => c.id === e.classId)?.subject || "";
-        const isoTime = e.time ? `${e.date}T${e.time}` : e.date;
         entries.push({
           id: e.id,
           type: "event",
-          iso: isoTime,
-          label: `[イベント] ${className ? `${className}：` : ''}${e.title}${e.memo ? `（${e.memo}）` : ''}`
+          time: getDateTime(e.date, e.time).getTime(),
+          label: `[イベント] ${className ? `${className}：` : ""}${e.title}${e.memo ? `（${e.memo}）` : ""}`
         });
       }
     });
 
-    entries.sort((a, b) => new Date(a.iso) - new Date(b.iso));
+    entries.sort((a, b) => a.time - b.time);
 
     function filterEntries() {
       const type = document.getElementById("filterSelect").value;
@@ -95,15 +97,15 @@
           const div = document.createElement("div");
           div.className = "item";
 
-          const d = new Date(e.iso);
+          const d = new Date(e.time);
           const dateStr = `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}` +
-                          `${e.iso.length > 10 ? ` ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}` : ''}`;
+                          (d.getHours() !== 0 || d.getMinutes() !== 0 ? ` ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}` : '');
 
           div.innerHTML = `<time>${dateStr}</time><div>${e.label}</div>`;
 
           const editBtn = document.createElement("button");
           editBtn.textContent = "編集";
-          editBtn.onclick = () => openEditModal(e.type, e.id);  // 呼び出し
+          editBtn.onclick = () => openEditModal(e.type, e.id);
           div.appendChild(editBtn);
 
           const deleteBtn = document.createElement("button");
