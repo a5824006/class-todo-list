@@ -38,9 +38,12 @@ function addClass() {
   }
 
   const durationInput = prompt("2限連続の場合は2を入力してください（それ以外は空欄でOKを押してください）：");
-  const duration = (durationInput?.trim() === "2") ? 2 : 1;
+  if (durationInput === null) return;
+  const duration = durationInput.trim() === "2" ? 2 : 1;
 
-  const room = prompt("教室を入力してください（任意）：") || "";
+  const roomInput = prompt("教室を入力してください（任意）：");
+  if (roomInput === null) return;
+  const room = roomInput.trim();
 
   const classId = `${subject.trim()}_${weekday}_${period}_${room || "none"}`;
   const classes = JSON.parse(localStorage.getItem("classes") || "[]");
