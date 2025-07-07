@@ -77,7 +77,6 @@
       const mm = String(now.getMonth() + 1).padStart(2, '0');
       const dd = String(now.getDate()).padStart(2, '0');
       const today = `${yyyy}-${mm}-${dd}`;
-      const nowTime = now.getTime();
 
       // 期限切れ削除
       const cleaned = removeExpiredEntries(todos, events);
@@ -133,8 +132,10 @@
         entries.push({
           id: t.id,
           type: "todo",
-          iso: getDateTime(t.due, t.time),
-          label: `[ToDo] ${subject ? subject + "：" : ""}${t.time ? t.time + " " : ""}${t.content}${t.memo ? `（${t.memo}）` : ""}`
+          iso: getDateTime(t.due, t.time).getTime(),
+          dateStr: formatEntryDate(t.due, t.time),
+          label: t.content,
+          memo: t.memo
         });
       });
 
@@ -143,12 +144,14 @@
         entries.push({
           id: e.id,
           type: "event",
-          iso: getDateTime(e.date, e.time),
-          label: `[イベント] ${subject ? subject + "：" : ""}${e.time ? e.time + " " : ""}${e.title}${e.memo ? `（${e.memo}）` : ""}`
+          iso: getDateTime(e.date, e.time).getTime(),
+          dateStr: formatEntryDate(e.date, e.time),
+          label: e.title,
+          memo: e.memo
         });
       });
 
-      // 時刻順
+      // 時刻順ソート
       entries.sort((a, b) => a.iso - b.iso);
 
       if (entries.length === 0) {
@@ -159,8 +162,11 @@
           const li = document.createElement("li");
           li.className = "item";
 
-          const div = document.createElement("div");
-          div.textContent = e.label;
+          li.innerHTML =
+            `<time>${e.dateStr}</time>` +
+            `<div>[${e.type === 'todo' ? 'ToDo' : 'イベント'}] ${
+              classes.find(c => c.id === (e.type === 'todo' ? t.classId : null))?.subject ? classes.find(c => c.id === (e.type === 'todo' ? t.classId : null)).subject + '：' : ''
+            }${e.label}${e.memo ? `（${e.memo}）` : ''}</div>`;
 
           const editBtn = document.createElement("button");
           editBtn.textContent = "編集";
@@ -170,20 +176,16 @@
           deleteBtn.textContent = "削除";
           deleteBtn.onclick = () => deleteEntry(e.type, e.id);
 
-          li.appendChild(div);
           li.appendChild(editBtn);
           li.appendChild(deleteBtn);
           todayList.appendChild(li);
         });
       }
 
-      // 教科一覧
+      // 教科一覧はそのまま
       const classList = document.getElementById("class-list");
       classList.innerHTML = "";
-      classes.sort((a, b) => {
-        if (a.weekday !== b.weekday) return a.weekday - b.weekday;
-        return a.period - b.period;
-      });
+      classes.sort((a, b) => a.weekday - b.weekday || a.period - b.period);
       classes.forEach(c => {
         const li = document.createElement("li");
         li.className = "class-item";

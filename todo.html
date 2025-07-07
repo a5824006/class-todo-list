@@ -47,46 +47,47 @@
     let todos = JSON.parse(localStorage.getItem("todos") || "[]");
     let events = JSON.parse(localStorage.getItem("events") || "[]");
 
-    // 期限切れ削除
+    // 期限切れ削除（永続化）
     const cleaned = removeExpiredEntries(todos, events);
     todos = cleaned.todos;
     events = cleaned.events;
-    localStorage.setItem("todos",  JSON.stringify(todos));
+    localStorage.setItem("todos", JSON.stringify(todos));
     localStorage.setItem("events", JSON.stringify(events));
-
-    const now = new Date();
-    const yyyy = now.getFullYear();
-    const mm = String(now.getMonth() + 1).padStart(2, '0');
-    const dd = String(now.getDate()).padStart(2, '0');
-    const today = `${yyyy}-${mm}-${dd}`; // JST基準
 
     const entries = [];
 
+    // ToDo
     todos.forEach(t => {
-      if (!t.done && t.due >= today) {
-        const className = classes.find(c => c.id === t.classId)?.subject || "";
+      if (!t.done) {
         entries.push({
           id: t.id,
           type: "todo",
           time: getDateTime(t.due, t.time).getTime(),
-          label: `[ToDo] ${className ? `${className}：` : ""}${t.content}${t.memo ? `（${t.memo}）` : ""}`
+          dateStr: formatEntryDate(t.due, t.time),
+          label: t.content,
+          memo: t.memo || "",
+          subject: classes.find(c => c.id === t.classId)?.subject || ""
         });
       }
     });
 
+    // Events
     events.forEach(e => {
-      if (e.date >= today) {
-        const className = classes.find(c => c.id === e.classId)?.subject || "";
-        entries.push({
-          id: e.id,
-          type: "event",
-          time: getDateTime(e.date, e.time).getTime(),
-          label: `[イベント] ${className ? `${className}：` : ""}${e.title}${e.memo ? `（${e.memo}）` : ""}`
-        });
-      }
+      entries.push({
+        id: e.id,
+        type: "event",
+        time: getDateTime(e.date, e.time).getTime(),
+        dateStr: formatEntryDate(e.date, e.time),
+        label: e.title,
+        memo: e.memo || "",
+        subject: classes.find(c => c.id === e.classId)?.subject || ""
+      });
     });
 
-    entries.sort((a, b) => a.time - b.time);
+    // 今日以降かつソート
+    const now = Date.now();
+    entries.filter(e => e.time >= now)
+           .sort((a, b) => a.time - b.time);
 
     function filterEntries() {
       const type = document.getElementById("filterSelect").value;
@@ -94,7 +95,7 @@
       const emptyMessage = document.getElementById("empty-message");
       list.innerHTML = "";
 
-      const filtered = entries.filter(e => type === "all" || e.type === type);
+      const filtered = entries.filter(e => (type === "all" || e.type === type));
 
       if (filtered.length === 0) {
         emptyMessage.style.display = "block";
@@ -104,11 +105,11 @@
           const div = document.createElement("div");
           div.className = "item";
 
-          const d = new Date(e.time);
-          const dateStr = `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}` +
-                          (d.getHours() !== 0 || d.getMinutes() !== 0 ? ` ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}` : '');
-
-          div.innerHTML = `<time>${dateStr}</time><div>${e.label}</div>`;
+          div.innerHTML =
+            `<time>${e.dateStr}</time>` +
+            `<div>[${e.type === 'todo' ? 'ToDo' : 'イベント'}] ${
+              e.subject ? e.subject + '：' : ''
+            }${e.label}${e.memo ? `（${e.memo}）` : ''}</div>`;
 
           const editBtn = document.createElement("button");
           editBtn.textContent = "編集";

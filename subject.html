@@ -57,13 +57,14 @@
     let todos = JSON.parse(localStorage.getItem("todos") || "[]");
     let events = JSON.parse(localStorage.getItem("events") || "[]");
 
-    // 期限切れ削除
+    // 期限切れ削除（永続化）
     const cleaned = removeExpiredEntries(todos, events);
     todos = cleaned.todos;
     events = cleaned.events;
-    localStorage.setItem("todos",  JSON.stringify(todos));
+    localStorage.setItem("todos", JSON.stringify(todos));
     localStorage.setItem("events", JSON.stringify(events));
 
+    // 教科情報表示
     const subject = classes.find(c => c.id === classId);
     if (subject) {
       const weekdayText = ['月','火','水','木','金'][subject.weekday - 1];
@@ -79,66 +80,52 @@
         `${subject.subject} の予定`;
     }
 
+    // 予定リスト作成
     const entryList = [];
-
     todos.filter(t => t.classId === classId && !t.done).forEach(t => {
       entryList.push({
         id: t.id,
         type: "todo",
-        iso: getDateTime(t.due, t.time).getTime(),
-        label: `[ToDo] ${t.content}${t.memo ? `（${t.memo}）` : ''}`
+        time: getDateTime(t.due, t.time).getTime(),
+        dateStr: formatEntryDate(t.due, t.time),
+        label: t.content,
+        memo: t.memo || ""
       });
     });
-
     events.filter(e => e.classId === classId).forEach(e => {
       entryList.push({
         id: e.id,
         type: "event",
-        iso: getDateTime(e.date, e.time).getTime(),
-        label: `[イベント] ${e.title}${e.memo ? `（${e.memo}）` : ''}`
+        time: getDateTime(e.date, e.time).getTime(),
+        dateStr: formatEntryDate(e.date, e.time),
+        label: e.title,
+        memo: e.memo || ""
       });
     });
 
-    entryList.sort((a, b) => new Date(a.iso) - new Date(b.iso));
+    // 時刻順ソート
+    entryList.sort((a, b) => a.time - b.time);
 
     const container = document.getElementById("entry-list");
     if (entryList.length === 0) {
       document.getElementById("empty-subject").style.display = "block";
     } else {
-      const container = document.getElementById("entry-list");
       container.innerHTML = "";
       entryList.forEach(e => {
-        // ISOタイムスタンプを Date オブジェクトに
-        const d = new Date(e.iso);
-
-        // time プロパティが文字列かつ空でないかで「時刻あり」を判定
-        const hasTime = typeof e.time === 'string' && e.time.trim() !== '';
-
-        // 日付文字列（必要なら時刻も付加）
-        const dateStr =
-          `${d.getFullYear()}/` +
-          `${String(d.getMonth() + 1).padStart(2, '0')}/` +
-          `${String(d.getDate()).padStart(2, '0')}` +
-          (hasTime
-            ? ` ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
-            : '');
-
-        // 要素作成
         const div = document.createElement("div");
         div.className = "item";
-        div.innerHTML = `<time>${dateStr}</time><div>${e.label}</div>`;
+        div.innerHTML =
+          `<time>${e.dateStr}</time>` +
+          `<div>[${e.type === 'todo' ? 'ToDo' : 'イベント'}] ${e.label}${e.memo ? `（${e.memo}）` : ''}</div>`;
 
-        // 編集ボタン
         const editBtn = document.createElement("button");
         editBtn.textContent = "編集";
         editBtn.onclick = () => openEditModal(e.type, e.id);
 
-        // 削除ボタン
         const deleteBtn = document.createElement("button");
         deleteBtn.textContent = "削除";
         deleteBtn.onclick = () => deleteEntry(e.type, e.id);
 
-        // ボタンを追加して DOM 反映
         div.appendChild(editBtn);
         div.appendChild(deleteBtn);
         container.appendChild(div);
