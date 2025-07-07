@@ -347,9 +347,23 @@ function getDateTime(dateStr, timeStr) {
 }
 
 function removeExpiredEntries(todos, events) {
-  const now = new Date().getTime();
-  const filteredTodos = todos.filter(t => getDateTime(t.due, t.time).getTime() >= now);
-  const filteredEvents = events.filter(e => getDateTime(e.date, e.time).getTime() >= now);
+  const now = new Date();
+  // 今日の 0:00 のタイムスタンプ
+  const startOfToday = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate()
+  ).getTime();
+
+  const filteredTodos = todos.filter(t => {
+    const dueTime = getDateTime(t.due, t.time).getTime();
+    return dueTime >= startOfToday;
+  });
+  const filteredEvents = events.filter(e => {
+    const evtTime = getDateTime(e.date, e.time).getTime();
+    return evtTime >= startOfToday;
+  });
+
   return { todos: filteredTodos, events: filteredEvents };
 }
 
