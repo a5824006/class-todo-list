@@ -225,9 +225,7 @@
         classList.appendChild(li);
       });
     }
-    document.addEventListener('DOMContentLoaded', () => {
-      loadPage();
-    });
+    window.onload = loadPage;
   </script>
 </body>
 </html>

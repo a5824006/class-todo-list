@@ -51,8 +51,6 @@
     const cleaned = removeExpiredEntries(todos, events);
     todos  = cleaned.todos;
     events = cleaned.events;
-    localStorage.setItem("todos",  JSON.stringify(todos));
-    localStorage.setItem("events", JSON.stringify(events));
 
     // ① 元データから entries を組み立て
     const entries = [];
