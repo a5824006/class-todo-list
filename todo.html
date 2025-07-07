@@ -44,88 +44,90 @@
     injectEditModal();
 
     const classes = JSON.parse(localStorage.getItem("classes") || "[]");
-    let todos = JSON.parse(localStorage.getItem("todos") || "[]");
-    let events = JSON.parse(localStorage.getItem("events") || "[]");
+    let todos   = JSON.parse(localStorage.getItem("todos")  || "[]");
+    let events  = JSON.parse(localStorage.getItem("events") || "[]");
 
     // 期限切れ削除（永続化）
     const cleaned = removeExpiredEntries(todos, events);
-    todos = cleaned.todos;
+    todos  = cleaned.todos;
     events = cleaned.events;
-    localStorage.setItem("todos", JSON.stringify(todos));
+    localStorage.setItem("todos",  JSON.stringify(todos));
     localStorage.setItem("events", JSON.stringify(events));
 
+    // ① 元データから entries を組み立て
     const entries = [];
-
-    // ToDo
     todos.forEach(t => {
       if (!t.done) {
         entries.push({
-          id: t.id,
-          type: "todo",
-          time: getDateTime(t.due, t.time).getTime(),
+          id:     t.id,
+          type:   "todo",
+          time:   getDateTime(t.due, t.time).getTime(),
           dateStr: formatEntryDate(t.due, t.time),
-          label: t.content,
-          memo: t.memo || "",
-          subject: classes.find(c => c.id === t.classId)?.subject || ""
+          label:  t.content,
+          memo:   t.memo  || "",
+          subject: classes.find(c => c.id===t.classId)?.subject || ""
         });
       }
     });
-
-    // Events
     events.forEach(e => {
       entries.push({
-        id: e.id,
-        type: "event",
-        time: getDateTime(e.date, e.time).getTime(),
+        id:     e.id,
+        type:   "event",
+        time:   getDateTime(e.date, e.time).getTime(),
         dateStr: formatEntryDate(e.date, e.time),
-        label: e.title,
-        memo: e.memo || "",
-        subject: classes.find(c => c.id === e.classId)?.subject || ""
+        label:  e.title,
+        memo:   e.memo  || "",
+        subject: classes.find(c => c.id===e.classId)?.subject || ""
       });
     });
 
-    // 今日以降かつソート
+    // ② 今日以降のものだけを抽出しつつ、時間順にソート
     const now = Date.now();
-    entries.filter(e => e.time >= now)
-           .sort((a, b) => a.time - b.time);
+    const visibleEntries = entries
+      .filter(e => e.time >= now)
+      .sort((a, b) => a.time - b.time);
 
+    // ③ フィルタ＆描画関数
     function filterEntries() {
       const type = document.getElementById("filterSelect").value;
       const list = document.getElementById("sorted-list");
-      const emptyMessage = document.getElementById("empty-message");
+      const empty = document.getElementById("empty-message");
       list.innerHTML = "";
 
-      const filtered = entries.filter(e => (type === "all" || e.type === type));
+      const filtered = visibleEntries.filter(e =>
+        type === "all" || e.type === type
+      );
 
       if (filtered.length === 0) {
-        emptyMessage.style.display = "block";
+        empty.style.display = "block";
       } else {
-        emptyMessage.style.display = "none";
+        empty.style.display = "none";
         filtered.forEach(e => {
           const div = document.createElement("div");
           div.className = "item";
-
-          div.innerHTML =
+          div.innerHTML = 
             `<time>${e.dateStr}</time>` +
-            `<div>[${e.type === 'todo' ? 'ToDo' : 'イベント'}] ${
-              e.subject ? e.subject + '：' : ''
-            }${e.label}${e.memo ? `（${e.memo}）` : ''}</div>`;
+            `<div>[${e.type==='todo'?'ToDo':'イベント'}] ` +
+              `${e.subject ? e.subject+'：':''}${e.label}` +
+              `${e.memo    ? `（${e.memo}）` : ''}` +
+            `</div>`;
 
           const editBtn = document.createElement("button");
           editBtn.textContent = "編集";
           editBtn.onclick = () => openEditModal(e.type, e.id);
           div.appendChild(editBtn);
 
-          const deleteBtn = document.createElement("button");
-          deleteBtn.textContent = "削除";
-          deleteBtn.onclick = () => deleteEntry(e.type, e.id);
-          div.appendChild(deleteBtn);
+          const delBtn = document.createElement("button");
+          delBtn.textContent = "削除";
+          delBtn.onclick = () => deleteEntry(e.type, e.id);
+          div.appendChild(delBtn);
 
           list.appendChild(div);
         });
       }
     }
 
+    // 最初の描画
     filterEntries();
   </script>
 </body>
