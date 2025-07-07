@@ -126,6 +126,7 @@ function openEditModal(type, id) {
 }
 
 function saveEditedEntry() {
+  if (!confirm("この内容で保存しますか？")) return;
   const newType = document.getElementById("editType").value;
   const title = document.getElementById("editTitle").value;
   const date = document.getElementById("editDate").value;
@@ -170,3 +171,17 @@ function closeEditModal() {
   currentEditId = null;
   currentEditType = null;
 }
+
+document.addEventListener("keydown", function(e) {
+  const modal = document.getElementById("edit-modal");
+  const active = document.activeElement;
+
+  if (
+    modal?.style.display === "flex" &&
+    active?.id === "editMemo" &&
+    e.key === "Enter"
+  ) {
+    e.preventDefault();       // 改行を防ぐ
+    active.blur();            // 入力終了（フォーカス解除）
+  }
+});
