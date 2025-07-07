@@ -54,7 +54,10 @@
   </footer>
 
   <script src="utils.js"></script>
-  <script>injectEditModal();</script>
+  <script>
+    injectEditModal();         // 予定編集用
+    injectClassEditModal();    // 教科編集用
+  </script>
 
   <script>
     function deleteClass(classId) {
@@ -84,7 +87,7 @@
       const currentBox = document.getElementById("current-class");
       const nowMin = now.getHours() * 60 + now.getMinutes();
       const currentSubjects = classes.filter(c => {
-        const dur = c.duration || 1;  // デフォルト1
+        const dur = c.duration || 1;
         let inRange = false;
         for (let i = 0; i < dur; i++) {
           const periodIndex = c.period - 1 + i;
@@ -121,14 +124,48 @@
 
       todos.filter(t => t.due === today && !t.done).forEach(t => {
         const li = document.createElement("li");
-        li.textContent = `[ToDo] ${t.content}（${t.time || ''} ${t.memo || ''}）`;
+        li.className = "item";
+
+        const label = `[ToDo] ${t.content}（${t.time || ''} ${t.memo || ''}）`;
+        const div = document.createElement("div");
+        div.textContent = label;
+
+        const editBtn = document.createElement("button");
+        editBtn.textContent = "編集";
+        editBtn.onclick = () => openEditModal("todo", t.id);
+
+        const deleteBtn = document.createElement("button");
+        deleteBtn.textContent = "削除";
+        deleteBtn.onclick = () => deleteEntry("todo", t.id);
+
+        li.appendChild(div);
+        li.appendChild(editBtn);
+        li.appendChild(deleteBtn);
+
         todayList.appendChild(li);
         hasToday = true;
       });
 
       events.filter(e => e.date === today).forEach(e => {
         const li = document.createElement("li");
-        li.textContent = `[イベント] ${e.title}（${e.time || ''} ${e.memo || ''}）`;
+        li.className = "item";
+
+        const label = `[イベント] ${e.title}（${e.time || ''} ${e.memo || ''}）`;
+        const div = document.createElement("div");
+        div.textContent = label;
+
+        const editBtn = document.createElement("button");
+        editBtn.textContent = "編集";
+        editBtn.onclick = () => openEditModal("event", e.id);
+
+        const deleteBtn = document.createElement("button");
+        deleteBtn.textContent = "削除";
+        deleteBtn.onclick = () => deleteEntry("event", e.id);
+
+        li.appendChild(div);
+        li.appendChild(editBtn);
+        li.appendChild(deleteBtn);
+
         todayList.appendChild(li);
         hasToday = true;
       });
@@ -146,16 +183,45 @@
       classes.forEach(c => {
         const li = document.createElement("li");
         li.className = "class-item";
+        li.style.display = "flex";              // 横並びにする
+        li.style.alignItems = "center";         // 縦方向中央揃え
+
         const duration = c.duration || 1;
         const room = c.room ? ` @${c.room}` : "";
         const periodText = (duration === 2) ? `${c.period},${c.period + 1}限` : `${c.period}限`;
         const weekdayText = ['月','火','水','木','金'][c.weekday - 1];
-        li.innerHTML = `<span onclick="location.href='subject.html?classId=${c.id}'">${c.subject}（${weekdayText}${periodText}${room}）</span> <button onclick="deleteClass('${c.id}')">削除</button>`;
+
+        // 教科名表示（左側）
+        const span = document.createElement("span");
+        span.textContent = `${c.subject}（${weekdayText}${periodText}${room}）`;
+        span.style.cursor = "pointer";
+        span.style.textDecoration = "underline";
+        span.onclick = () => location.href = `subject.html?classId=${c.id}`;
+
+        // 編集・削除ボタン（右側）
+        const right = document.createElement("div");
+        right.style.display = "flex";
+        right.style.gap = "0px";                // ボタン間隔ゼロ
+        right.style.marginLeft = "auto";        // 右詰め
+
+        const editBtn = document.createElement("button");
+        editBtn.textContent = "編集";
+        editBtn.onclick = () => openClassEditModal(c);
+
+        const deleteBtn = document.createElement("button");
+        deleteBtn.textContent = "削除";
+        deleteBtn.onclick = () => deleteClass(c.id);
+
+        right.appendChild(editBtn);
+        right.appendChild(deleteBtn);
+
+        // li に両要素を追加
+        li.appendChild(span);
+        li.appendChild(right);
+
         classList.appendChild(li);
       });
-
     }
-
     window.onload = loadPage;
   </script>
 </body>

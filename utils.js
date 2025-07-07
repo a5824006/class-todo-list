@@ -66,6 +66,86 @@ function addClass() {
   location.reload();
 }
 
+function injectClassEditModal() {
+  const modalHtml = `
+    <div id="class-edit-modal" class="modal">
+      <div class="modal-content">
+        <h3>教科を編集</h3>
+        <input type="text" id="classSubject" placeholder="教科名">
+        <input type="text" id="classWeekday" placeholder="曜日（例：月, 火曜）">
+        <input type="number" id="classPeriod" placeholder="開始時限（1〜6）" min="1" max="6">
+        <input type="number" id="classDuration" placeholder="連続数（通常1, 2なら2限連続）" min="1" max="2">
+        <input type="text" id="classRoom" placeholder="教室（任意）">
+        <div class="modal-buttons">
+          <button onclick="saveEditedClass()">OK</button>
+          <button onclick="closeClassEditModal()">キャンセル</button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.insertAdjacentHTML("beforeend", modalHtml);
+}
+
+let currentClassIdForEdit = null;
+
+function openClassEditModal(classObj) {
+  currentClassIdForEdit = classObj.id;
+  document.getElementById("classSubject").value = classObj.subject || "";
+  document.getElementById("classWeekday").value = ['月','火','水','木','金'][classObj.weekday - 1] || "";
+  document.getElementById("classPeriod").value = classObj.period || "";
+  document.getElementById("classDuration").value = classObj.duration || 1;
+  document.getElementById("classRoom").value = classObj.room || "";
+  document.getElementById("class-edit-modal").style.display = "flex";
+}
+
+function saveEditedClass() {
+  if (!confirm("この内容で変更しますか？")) return;
+
+  const subject = document.getElementById("classSubject").value.trim();
+  const weekdayInput = document.getElementById("classWeekday").value.trim();
+  const period = parseInt(document.getElementById("classPeriod").value);
+  const duration = parseInt(document.getElementById("classDuration").value) || 1;
+  const room = document.getElementById("classRoom").value.trim();
+
+  const weekday = normalizeWeekday(weekdayInput);
+  if (!subject || !weekday || isNaN(period) || period < 1 || period > 6) {
+    alert("入力内容に誤りがあります。");
+    return;
+  }
+
+  const newId = `${subject}_${weekday}_${period}_${room || "none"}`;
+  const classes = JSON.parse(localStorage.getItem("classes") || "[]");
+
+  // 重複チェック（別の教科で同じIDがある場合）
+  if (newId !== currentClassIdForEdit && classes.some(c => c.id === newId)) {
+    alert("同じ教科がすでに存在します。");
+    closeClassEditModal();
+    return;
+  }
+
+  // classIdを更新（ToDo・イベントも紐づけ直す）
+  const updatedClass = { id: newId, subject, weekday, period, duration, room, type: "class" };
+  const newClasses = classes.map(c => c.id === currentClassIdForEdit ? updatedClass : c);
+  localStorage.setItem("classes", JSON.stringify(newClasses));
+
+  // ToDo・イベントのclassIdを更新
+  const updateRelated = (key) => {
+    const list = JSON.parse(localStorage.getItem(key) || "[]");
+    const updated = list.map(e => e.classId === currentClassIdForEdit ? { ...e, classId: newId } : e);
+    localStorage.setItem(key, JSON.stringify(updated));
+  };
+  updateRelated("todos");
+  updateRelated("events");
+
+  closeClassEditModal();
+  location.reload();
+}
+
+function closeClassEditModal() {
+  document.getElementById("class-edit-modal").style.display = "none";
+  currentClassIdForEdit = null;
+}
+
 function toggleMenu() {
   const menu = document.getElementById("dropdown-menu");
   menu.style.display = (menu.style.display === "flex") ? "none" : "flex";
