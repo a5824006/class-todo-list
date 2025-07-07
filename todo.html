@@ -42,11 +42,12 @@
   <!-- 共通スクリプト -->
   <script src="addClass.js"></script>
   <script src="utils.js"></script>
+  <script>injectEditModal();</script>
 
   <script>
     const classes = JSON.parse(localStorage.getItem("classes") || "[]");
-    let todos = JSON.parse(localStorage.getItem("todos") || "[]");
-    let events = JSON.parse(localStorage.getItem("events") || "[]");
+    const todos = JSON.parse(localStorage.getItem("todos") || "[]");
+    const events = JSON.parse(localStorage.getItem("events") || "[]");
     const today = new Date().toISOString().split("T")[0];
 
     const entries = [];
@@ -101,10 +102,16 @@
 
           div.innerHTML = `<time>${dateStr}</time><div>${e.label}</div>`;
 
-          const btn = document.createElement("button");
-          btn.textContent = "削除";
-          btn.onclick = () => deleteEntry(e.type, e.id);  // ← 共通関数使用
-          div.appendChild(btn);
+          const editBtn = document.createElement("button");
+          editBtn.textContent = "編集";
+          editBtn.onclick = () => openEditModal(e.type, e.id);  // 呼び出し
+          div.appendChild(editBtn);
+
+          const deleteBtn = document.createElement("button");
+          deleteBtn.textContent = "削除";
+          deleteBtn.onclick = () => deleteEntry(e.type, e.id);
+          div.appendChild(deleteBtn);
+
           list.appendChild(div);
         });
       }

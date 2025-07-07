@@ -45,9 +45,11 @@
     <a href="#" onclick="addClass()">➕</a>
   </footer>
 
-  <!-- 共通JS -->
   <script src="addClass.js"></script>
   <script src="utils.js"></script>
+  <script>
+    injectEditModal();  // 編集UI挿入
+  </script>
 
   <script>
     const params = new URLSearchParams(location.search);
@@ -65,11 +67,8 @@
         : `${subject.period}限`;
       const roomText = subject.room ? ` @${subject.room}` : "";
 
-      // h2 に全情報
       document.getElementById("subject-title").textContent =
         `${subject.subject}（${weekdayText}${periodText}${roomText}）`;
-
-      // h3 に教科名のみ
       document.getElementById("subject-subtitle").textContent =
         `${subject.subject} の予定`;
     }
@@ -99,23 +98,31 @@
     entryList.sort((a, b) => new Date(a.iso) - new Date(b.iso));
 
     const container = document.getElementById("entry-list");
-    entryList.forEach(e => {
-      const div = document.createElement("div");
-      div.className = "item";
-
-      const d = new Date(e.iso);
-      const dateStr = `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}` +
-                      `${e.iso.length > 10 ? ` ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}` : ''}`;
-
-      div.innerHTML = `<time>${dateStr}</time><div>${e.label}</div>`;
-      const btn = document.createElement("button");
-      btn.textContent = "削除";
-      btn.onclick = () => deleteEntry(e.type, e.id);
-      div.appendChild(btn);
-      container.appendChild(div);
-    });
     if (entryList.length === 0) {
-    document.getElementById("empty-subject").style.display = "block";
+      document.getElementById("empty-subject").style.display = "block";
+    } else {
+      entryList.forEach(e => {
+        const div = document.createElement("div");
+        div.className = "item";
+
+        const d = new Date(e.iso);
+        const dateStr = `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}` +
+                        `${e.iso.length > 10 ? ` ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}` : ''}`;
+
+        div.innerHTML = `<time>${dateStr}</time><div>${e.label}</div>`;
+
+        const editBtn = document.createElement("button");
+        editBtn.textContent = "編集";
+        editBtn.onclick = () => openEditModal(e.type, e.id);
+
+        const deleteBtn = document.createElement("button");
+        deleteBtn.textContent = "削除";
+        deleteBtn.onclick = () => deleteEntry(e.type, e.id);
+
+        div.appendChild(editBtn);
+        div.appendChild(deleteBtn);
+        container.appendChild(div);
+      });
     }
   </script>
 </body>

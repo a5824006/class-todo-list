@@ -131,3 +131,50 @@ time {
   text-align: left;
   margin-top: 10px;
 }
+
+/* モーダル全体（画面を覆う半透明背景） */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5); /* 黒い半透明 */
+  display: none; /* 初期状態では非表示 */
+  justify-content: center;
+  align-items: center;
+  z-index: 1000; /* 最前面に出す */
+}
+
+/* モーダルの中身（白背景の入力フォーム） */
+.modal-content {
+  background: #fff;
+  padding: 16px;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-sizing: border-box;
+}
+
+/* モーダル内の入力系 */
+.modal-content input,
+.modal-content select,
+.modal-content textarea {
+  width: 100%;
+  margin: 6px 0;
+  padding: 6px;
+  font-size: 1em;
+  box-sizing: border-box;
+}
+
+/* モーダルのボタン配置（右寄せ） */
+.modal-content .modal-buttons {
+  text-align: right;
+  margin-top: 12px;
+}
+
+.modal-content button {
+  margin-left: 8px;
+  padding: 6px 12px;
+}
