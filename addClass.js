@@ -1,5 +1,3 @@
-// addClass.js
-
 function normalizeWeekday(input) {
   const map = {
     "月": 1, "月曜": 1, "月曜日": 1,
@@ -24,6 +22,7 @@ function addClass() {
   if (!subject) return;
 
   const weekdayInput = prompt("曜日を入力してください（例: 月, 火曜, 水曜日）:");
+  if (!weekdayInput) return;
   const weekday = normalizeWeekday(weekdayInput);
   if (!weekday) {
     alert("正しい曜日を入力してください");
@@ -31,14 +30,15 @@ function addClass() {
   }
 
   const periodInput = prompt("開始する時限を入力してください（1〜6）:");
+  if (!periodInput) return;
   const period = normalizePeriod(periodInput);
   if (!period) {
     alert("正しい時限を1〜6の数字で入力してください。");
     return;
   }
 
-  const durationInput = prompt("2限連続の場合は2を入力してください（それ以外は空欄でOKを押してください）：") || "1";
-  const duration = (durationInput.trim() === "2") ? 2 : 1;
+  const durationInput = prompt("2限連続の場合は2を入力してください（それ以外は空欄でOKを押してください）：");
+  const duration = (durationInput?.trim() === "2") ? 2 : 1;
 
   const room = prompt("教室を入力してください（任意）：") || "";
 
