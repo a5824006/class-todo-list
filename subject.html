@@ -61,8 +61,6 @@
     const cleaned = removeExpiredEntries(todos, events);
     todos = cleaned.todos;
     events = cleaned.events;
-    localStorage.setItem("todos", JSON.stringify(todos));
-    localStorage.setItem("events", JSON.stringify(events));
 
     const subject = classes.find(c => c.id === classId);
     if (subject) {
