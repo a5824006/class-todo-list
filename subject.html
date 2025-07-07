@@ -33,8 +33,9 @@
     </div>
 
     <div class="card">
-      <h3>登録済みの予定</h3>
+      <h3 id="subject-subtitle">登録済みの予定</h3>
       <div id="entry-list"></div>
+      <p id="empty-subject" style="display:none; color: #777;">📭 この教科の予定はありません</p>
     </div>
   </main>
 
@@ -44,7 +45,7 @@
     <a href="#" onclick="addClass()">➕</a>
   </footer>
 
-  <!-- 共通JS読み込み -->
+  <!-- 共通JS -->
   <script src="addClass.js"></script>
   <script src="utils.js"></script>
 
@@ -63,10 +64,15 @@
         ? `${subject.period},${subject.period + 1}限`
         : `${subject.period}限`;
       const roomText = subject.room ? ` @${subject.room}` : "";
+
+      // h2 に全情報
       document.getElementById("subject-title").textContent =
         `${subject.subject}（${weekdayText}${periodText}${roomText}）`;
-    }
 
+      // h3 に教科名のみ
+      document.getElementById("subject-subtitle").textContent =
+        `${subject.subject} の予定`;
+    }
 
     const entryList = [];
 
@@ -108,6 +114,9 @@
       div.appendChild(btn);
       container.appendChild(div);
     });
+    if (entryList.length === 0) {
+    document.getElementById("empty-subject").style.display = "block";
+    }
   </script>
 </body>
 </html>
