@@ -40,6 +40,10 @@ function addClass() {
   const durationInput = prompt("2限連続の場合は2を入力してください（それ以外は空欄でOKを押してください）：");
   if (durationInput === null) return;
   const duration = durationInput.trim() === "2" ? 2 : 1;
+  if (duration === 2 && period >= 6) {
+    alert("2限連続を指定する場合、開始時限は1〜5限のいずれかにしてください。");
+    return;
+  }
 
   const roomInput = prompt("教室を入力してください（任意）：");
   if (roomInput === null) return;
