@@ -335,9 +335,15 @@ document.addEventListener("keydown", function(e) {
 });
 
 function getDateTime(dateStr, timeStr) {
-  const time = timeStr && timeStr.trim() !== "" ? timeStr : "24:00";
-  return new Date(`${dateStr}T${time}`);
+  if (timeStr && timeStr.trim() !== "") {
+    return new Date(`${dateStr}T${timeStr}`);
+  } else {
+    const d = new Date(`${dateStr}T00:00`);
+    d.setHours(23, 59, 59, 999);
+    return d;
+  }
 }
+
 
 function removeExpiredEntries(todos, events) {
   const now = new Date().getTime();
