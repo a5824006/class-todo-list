@@ -151,6 +151,11 @@ function closeClassEditModal() {
 }
 
 function toggleMenu() {
+  const classes = JSON.parse(localStorage.getItem("classes") || "[]");
+  if (classes.length === 0) {
+    addClass();
+    return;
+  }
   const menu = document.getElementById("dropdown-menu");
 
   // 開閉トグル
@@ -162,8 +167,7 @@ function toggleMenu() {
   // メニューをクリア
   menu.innerHTML = "";
 
-  // 教科一覧を取得・ソート
-  const classes = JSON.parse(localStorage.getItem("classes") || "[]");
+  // ソート
   classes.sort((a, b) =>
     a.weekday - b.weekday || a.period - b.period
   );
