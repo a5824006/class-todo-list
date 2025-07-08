@@ -18,12 +18,12 @@ header {
   top: 0;
   left: 0;
   width: 100%;
-  background: #f0f0f0; /* 既存のスタイルを残す */
+  background: #f0f0f0;
   padding: 10px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  z-index: 100;       /* フッター（z-index:5）より手前に */
+  z-index: 100;
   box-sizing: border-box;
 }
 
@@ -43,7 +43,7 @@ footer {
 .menu {
   position: fixed;
   top: 55px;
-  right: 10px;
+  right: 0px;
   background: white;
   border: 1px solid #ccc;
   display: none;
