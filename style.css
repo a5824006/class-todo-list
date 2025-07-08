@@ -10,9 +10,24 @@ body {
 
 main {
   padding: 0 10px;
+  padding-top: calc(30px + 1.5em);
 }
 
-header, footer {
+header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: #f0f0f0; /* 既存のスタイルを残す */
+  padding: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 100;       /* フッター（z-index:5）より手前に */
+  box-sizing: border-box;
+}
+
+footer {
   background: #f0f0f0;
   padding: 10px;
   display: flex;
