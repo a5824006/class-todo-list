@@ -35,7 +35,8 @@ header, footer {
   flex-direction: column;
   z-index: 10;
   min-width: 140px;
-  width: 160px;
+  width: auto;
+  white-space: nowrap;
 }
 
 .menu a {

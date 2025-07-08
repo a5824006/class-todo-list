@@ -152,8 +152,34 @@ function closeClassEditModal() {
 
 function toggleMenu() {
   const menu = document.getElementById("dropdown-menu");
-  menu.style.display = (menu.style.display === "flex") ? "none" : "flex";
+
+  // 開閉トグル
+  if (menu.style.display === "flex") {
+    menu.style.display = "none";
+    return;
+  }
+
+  // メニューをクリア
+  menu.innerHTML = "";
+
+  // 教科一覧を取得・ソート
+  const classes = JSON.parse(localStorage.getItem("classes") || "[]");
+  classes.sort((a, b) =>
+    a.weekday - b.weekday || a.period - b.period
+  );
+
+  // 科目名のみでリンクを生成
+  classes.forEach(c => {
+    const a = document.createElement("a");
+    a.textContent = c.subject;  // ← 科目名だけ
+    a.href = `subject.html?classId=${c.id}`;
+    menu.appendChild(a);
+  });
+
+  // メニュー表示
+  menu.style.display = "flex";
 }
+
 
 // ToDo・イベントの登録（classId は null または指定ID）
 function addEntry(classId = null) {
