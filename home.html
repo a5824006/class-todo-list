@@ -165,7 +165,7 @@
           li.innerHTML =
             `<time>${e.dateStr}</time>` +
             `<div>[${e.type === 'todo' ? 'ToDo' : 'イベント'}] ${
-              classes.find(c => c.id === (e.type === 'todo' ? t.classId : null))?.subject ? classes.find(c => c.id === (e.type === 'todo' ? t.classId : null)).subject + '：' : ''
+              e.subject ? e.subject + '：' : ''
             }${e.label}${e.memo ? `（${e.memo}）` : ''}</div>`;
 
           const editBtn = document.createElement("button");
