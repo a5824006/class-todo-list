@@ -26,15 +26,15 @@ header, footer {
 }
 
 .menu {
-  position: absolute;
+  position: fixed;
   top: 50px;
   right: 10px;
   background: white;
   border: 1px solid #ccc;
   display: none;
   flex-direction: column;
-  z-index: 10;
-  min-width: 140px;
+  z-index: 1000;
+  min-width: 160px;
   width: auto;
   white-space: nowrap;
 }
