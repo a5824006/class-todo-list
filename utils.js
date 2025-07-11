@@ -22,7 +22,7 @@ function addClass() {
   const subject = prompt("教科名を入力してください：");
   if (!subject) return;
 
-  const weekdayInput = prompt("曜日を入力してください（例: 月, 火曜, 水曜日）:");
+  const weekdayInput = prompt("曜日を入力してください（形式の例: 月, 水曜, 土曜日）:");
   if (!weekdayInput) return;
   const weekday = normalizeWeekday(weekdayInput);
   if (!weekday) {
