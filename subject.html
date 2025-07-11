@@ -61,7 +61,7 @@
     // 教科情報表示
     const subject = classes.find(c => c.id === classId);
     if (subject) {
-      const weekdayText = ['月','火','水','木','金'][subject.weekday - 1];
+      const weekdayText = ['月','火','水','木','金','土'][subject.weekday - 1];
       const duration = subject.duration || 1;
       const periodText = duration === 2
         ? `${subject.period},${subject.period + 1}限`

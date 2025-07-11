@@ -110,7 +110,7 @@
           const duration = c.duration || 1;
           const periodText = duration === 2 ? `${c.period},${c.period + 1}限` : `${c.period}限`;
           a.href = `subject.html?classId=${c.id}`;
-          a.textContent = `${c.subject}（${['月','火','水','木','金'][c.weekday - 1]}${periodText}${roomText}）`;
+          a.textContent = `${c.subject}（${['月','火','水','木','金','土'][c.weekday - 1]}${periodText}${roomText}）`;
           p.appendChild(a);
           currentBox.appendChild(p);
         });
@@ -193,7 +193,7 @@
         const duration = c.duration || 1;
         const room = c.room ? ` @${c.room}` : "";
         const periodText = duration === 2 ? `${c.period},${c.period + 1}限` : `${c.period}限`;
-        const weekdayText = ['月','火','水','木','金'][c.weekday - 1];
+        const weekdayText = ['月','火','水','木','金','土'][c.weekday - 1];
 
         const span = document.createElement("span");
         span.textContent = `${c.subject}（${weekdayText}${periodText}${room}）`;
