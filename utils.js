@@ -96,7 +96,7 @@ let currentClassIdForEdit = null;
 function openClassEditModal(classObj) {
   currentClassIdForEdit = classObj.id;
   document.getElementById("classSubject").value = classObj.subject || "";
-  document.getElementById("classWeekday").value = ['月','火','水','木','金'][classObj.weekday - 1] || "";
+  document.getElementById("classWeekday").value = ['月','火','水','木','金','土'][classObj.weekday - 1] || "";
   document.getElementById("classPeriod").value = classObj.period || "";
   document.getElementById("classDuration").value = classObj.duration || 1;
   document.getElementById("classRoom").value = classObj.room || "";
