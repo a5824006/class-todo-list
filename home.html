@@ -9,7 +9,11 @@
 <body>
   <header>
     <a href="home.html" class="logo" style="text-decoration: none; color: inherit;">📘 MyStudy</a>
-    <div class="menu-button" onclick="toggleMenu()">☰</div>
+    <div class="header-actions">
+      <a href="timetable.html" class="header-icon" title="時間割" aria-label="時間割">▦</a>
+      <a href="settings.html#timezone-settings" class="header-icon" title="設定" aria-label="設定">⚙</a>
+      <div class="menu-button" onclick="toggleMenu()">☰</div>
+    </div>
   </header>
 
   <nav id="dropdown-menu" class="menu"></nav>
@@ -55,36 +59,40 @@
     injectClassEditModal();
 
     function deleteClass(classId) {
-      if (!confirm("本当に削除しますか？")) return;
-      const classes = JSON.parse(localStorage.getItem("classes") || "[]");
-      const filtered = classes.filter(c => c.id !== classId);
-      localStorage.setItem("classes", JSON.stringify(filtered));
-      location.reload();
+      const relatedTodos = readStoredList("todos").filter(t => t.classId === classId).length;
+      const relatedEvents = readStoredList("events").filter(e => e.classId === classId).length;
+      const message = relatedTodos + relatedEvents > 0
+        ? `本当に削除しますか？\n関連するToDo ${relatedTodos}件、イベント ${relatedEvents}件も削除されます。`
+        : "本当に削除しますか？";
+      if (!confirm(message)) return;
+
+      try {
+        const classes = readStoredListStrict("classes");
+        const todos = readStoredListStrict("todos");
+        const events = readStoredListStrict("events");
+        createBackup(relatedTodos + relatedEvents > 0 ? "delete-class-with-entries" : "delete-class");
+        writeStoredList("classes", classes.filter(c => c.id !== classId));
+        writeStoredList("todos", todos.filter(t => t.classId !== classId));
+        writeStoredList("events", events.filter(e => e.classId !== classId));
+        location.reload();
+      } catch (error) {
+        alert(error.message || "教科の削除に失敗しました。");
+      }
     }
 
     function loadPage() {
-      const classes = JSON.parse(localStorage.getItem("classes") || "[]");
-      let todos = JSON.parse(localStorage.getItem("todos") || "[]");
-      let events = JSON.parse(localStorage.getItem("events") || "[]");
+      const classes = readStoredList("classes");
+      const cleaned = cleanExpiredEntries();
+      let todos = cleaned.todos;
+      let events = cleaned.events;
 
-      // 今日の日付（JSTベース）
-      const now = new Date();
-      const yyyy = now.getFullYear();
-      const mm = String(now.getMonth() + 1).padStart(2, '0');
-      const dd = String(now.getDate()).padStart(2, '0');
-      const today = `${yyyy}-${mm}-${dd}`;
-
-      // 期限切れ削除
-      const cleaned = removeExpiredEntries(todos, events);
-      todos = cleaned.todos;
-      events = cleaned.events;
-      localStorage.setItem("todos", JSON.stringify(todos));
-      localStorage.setItem("events", JSON.stringify(events));
+      const today = getTodayString();
 
       // 今の時間に近い教科
-      const schedule = [[540, 630], [660, 750], [800, 890], [905, 995], [1010, 1100], [1110, 1200]];
+      const schedule = getPeriodSchedules();
       const currentBox = document.getElementById("current-class");
-      const nowMin = now.getHours() * 60 + now.getMinutes();
+      const nowMin = getCurrentMinutesOfDay();
+      const currentWeekday = getCurrentWeekday();
       const currentSubjects = classes
       .filter(c => {
         const dur = c.duration || 1;
@@ -92,8 +100,9 @@
           const periodIndex = c.period - 1 + i;
           const range = schedule[periodIndex];
           if (!range) continue;
-          if (nowMin >= range[0] - 90 && nowMin <= range[1] + 90) {
-            return c.weekday === now.getDay();
+          if (range.startMin === null || range.endMin === null) continue;
+          if (nowMin >= range.startMin - 90 && nowMin <= range.endMin + 90) {
+            return c.weekday === currentWeekday;
           }
         }
         return false;
@@ -101,7 +110,9 @@
       .map(c => {
         const periodIndex = c.period - 1;
         const range = schedule[periodIndex];
-        const center = (range[0] + range[1]) / 2;
+        const center = range && range.startMin !== null && range.endMin !== null
+          ? (range.startMin + range.endMin) / 2
+          : nowMin;
         const dist = Math.abs(nowMin - center);
         return { ...c, _dist: dist }; // 距離付きで拡張
       })
@@ -109,14 +120,17 @@
 
       if (currentSubjects.length > 0) {
         currentBox.style.display = "block";
-        currentBox.innerHTML = `<h2>📘 今の時間に近い教科</h2>`;
+        currentBox.replaceChildren();
+        const heading = document.createElement("h2");
+        heading.textContent = "📘 今の時間に近い教科";
+        currentBox.appendChild(heading);
         currentSubjects.forEach(c => {
           const p = document.createElement("p");
           const a = document.createElement("a");
           const roomText = c.room ? ` @${c.room}` : "";
           const duration = c.duration || 1;
           const periodText = duration === 2 ? `${c.period},${c.period + 1}限` : `${c.period}限`;
-          a.href = `subject.html?classId=${c.id}`;
+          a.href = getSubjectUrl(c.id);
           a.textContent = `${c.subject}（${['月','火','水','木','金','土'][c.weekday - 1]}${periodText}${roomText}）`;
           p.appendChild(a);
           currentBox.appendChild(p);
@@ -126,7 +140,7 @@
       // 今日の予定 (ToDo + イベント) を時刻順に
       const todayList = document.getElementById("today-list");
       const emptyToday = document.getElementById("empty-today");
-      todayList.innerHTML = "";
+      todayList.replaceChildren();
 
       const entries = [];
 
@@ -138,7 +152,8 @@
           iso: getDateTime(t.due, t.time).getTime(),
           dateStr: formatEntryDate(t.due, t.time),
           label: t.content,
-          memo: t.memo
+          memo: t.memo,
+          subject
         });
       });
 
@@ -150,7 +165,8 @@
           iso: getDateTime(e.date, e.time).getTime(),
           dateStr: formatEntryDate(e.date, e.time),
           label: e.title,
-          memo: e.memo
+          memo: e.memo,
+          subject
         });
       });
 
@@ -164,12 +180,14 @@
         entries.forEach(e => {
           const li = document.createElement("li");
           li.className = "item";
+          appendEntrySummary(li, e);
 
-          li.innerHTML =
-            `<time>${e.dateStr}</time>` +
-            `<div>[${e.type === 'todo' ? 'ToDo' : 'イベント'}] ${
-              e.subject ? e.subject + '：' : ''
-            }${e.label}${e.memo ? `（${e.memo}）` : ''}</div>`;
+          if (e.type === "todo") {
+            const doneBtn = document.createElement("button");
+            doneBtn.textContent = "完了";
+            doneBtn.onclick = () => toggleTodoDone(e.id);
+            li.appendChild(doneBtn);
+          }
 
           const editBtn = document.createElement("button");
           editBtn.textContent = "編集";
@@ -187,7 +205,7 @@
 
       // 教科一覧はそのまま
       const classList = document.getElementById("class-list");
-      classList.innerHTML = "";
+      classList.replaceChildren();
       classes.sort((a, b) => a.weekday - b.weekday || a.period - b.period);
       classes.forEach(c => {
         const li = document.createElement("li");
@@ -206,7 +224,7 @@
         span.textContent = `${c.subject}（${weekdayText}${periodText}${room}）`;
         span.style.cursor = "pointer";
         span.style.textDecoration = "underline";
-        span.onclick = () => location.href = `subject.html?classId=${c.id}`;
+        span.onclick = () => location.href = getSubjectUrl(c.id);
 
         const buttons = document.createElement("div");
         buttons.style.display = "flex";

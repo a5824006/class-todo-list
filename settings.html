@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MyStudy - 設定</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <a href="home.html" class="logo" style="text-decoration: none; color: inherit;">📘 MyStudy</a>
+    <div class="header-actions">
+      <a href="timetable.html" class="header-icon" title="時間割" aria-label="時間割">▦</a>
+      <a href="#timezone-settings" class="header-icon" title="設定" aria-label="設定">⚙</a>
+      <div class="menu-button" onclick="toggleMenu()">☰</div>
+    </div>
+  </header>
+
+  <nav id="dropdown-menu" class="menu"></nav>
+
+  <main>
+    <div class="card" id="timezone-settings">
+      <h2>設定</h2>
+      <label for="timezoneOffset">基準タイムゾーン</label>
+      <div class="inline-controls">
+        <span>UTC</span>
+        <input type="number" id="timezoneOffset" min="-12" max="14" step="0.25">
+        <button onclick="saveTimezoneSetting()">保存</button>
+      </div>
+      <p id="timezoneCurrent" class="muted"></p>
+    </div>
+
+    <div class="card" id="period-time-settings">
+      <h2>時限時間</h2>
+      <label class="checkbox-row">
+        <input type="checkbox" id="showPeriodTimes">
+        <span>時間割に時刻を表示</span>
+      </label>
+      <div id="periodTimeRows" class="period-time-rows"></div>
+      <button onclick="savePeriodTimeSettings()">保存</button>
+    </div>
+
+    <div class="card" id="sync-tools">
+      <h2>データ同期</h2>
+      <div class="button-row">
+        <button onclick="copySyncCode()">同期コードをコピー</button>
+        <button onclick="exportSyncFile()">JSONを書き出し</button>
+      </div>
+      <textarea id="syncOutput" class="sync-area" readonly placeholder="同期コード"></textarea>
+
+      <select id="syncImportMode" onchange="clearImportPreview()">
+        <option value="merge">統合</option>
+        <option value="replace">上書き</option>
+      </select>
+      <textarea id="syncInput" class="sync-area" placeholder="同期コードまたはJSON" oninput="clearImportPreview()"></textarea>
+      <div id="syncPreview" class="sync-preview" hidden></div>
+      <div class="button-row">
+        <button onclick="previewSyncImport()">プレビュー</button>
+        <button id="syncApplyButton" onclick="applySyncImport()" hidden disabled>取り込みを実行</button>
+        <button onclick="document.getElementById('syncFile').click()">JSONを読み込み</button>
+      </div>
+      <input type="file" id="syncFile" accept=".json,application/json,text/plain" onchange="importSyncFile(event)" hidden>
+      <p id="syncStatus" class="muted"></p>
+    </div>
+
+    <div class="card" id="backup-tools">
+      <h2>バックアップ</h2>
+      <div id="backupList"></div>
+    </div>
+  </main>
+
+  <footer class="bottom-nav">
+    <a href="home.html">🏠</a>
+    <a href="todo.html">🕒</a>
+    <a href="#" onclick="addClass()">➕</a>
+  </footer>
+
+  <script src="utils.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", initializeSettingsPanel);
+  </script>
+</body>
+</html>

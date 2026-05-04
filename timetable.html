@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MyStudy - 時間割</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <a href="home.html" class="logo" style="text-decoration: none; color: inherit;">📘 MyStudy</a>
+    <div class="header-actions">
+      <a href="timetable.html" class="header-icon" title="時間割" aria-label="時間割">▦</a>
+      <a href="settings.html#timezone-settings" class="header-icon" title="設定" aria-label="設定">⚙</a>
+      <div class="menu-button" onclick="toggleMenu()">☰</div>
+    </div>
+  </header>
+
+  <nav id="dropdown-menu" class="menu"></nav>
+
+  <main>
+    <div class="card">
+      <h2>時間割</h2>
+      <div class="timetable-scroll">
+        <table class="timetable">
+          <thead>
+            <tr id="timetable-head"></tr>
+          </thead>
+          <tbody id="timetable-body"></tbody>
+        </table>
+      </div>
+      <p id="empty-timetable" class="muted" style="display:none;">登録済みの教科はありません。</p>
+    </div>
+  </main>
+
+  <footer class="bottom-nav">
+    <a href="home.html">🏠</a>
+    <a href="todo.html">🕒</a>
+    <a href="#" onclick="addClass()">➕</a>
+  </footer>
+
+  <script src="utils.js"></script>
+  <script>
+    function loadTimetable() {
+      const weekdays = ["月", "火", "水", "木", "金", "土"];
+      const classes = readStoredList("classes")
+        .sort((a, b) => a.weekday - b.weekday || a.period - b.period);
+
+      const head = document.getElementById("timetable-head");
+      const body = document.getElementById("timetable-body");
+      const empty = document.getElementById("empty-timetable");
+      head.replaceChildren();
+      body.replaceChildren();
+
+      const periodHead = document.createElement("th");
+      periodHead.textContent = "時限";
+      head.appendChild(periodHead);
+
+      weekdays.forEach(day => {
+        const th = document.createElement("th");
+        th.textContent = day;
+        head.appendChild(th);
+      });
+
+      for (let period = 1; period <= 6; period++) {
+        const tr = document.createElement("tr");
+        const periodCell = document.createElement("th");
+        periodCell.textContent = getPeriodLabel(period);
+        tr.appendChild(periodCell);
+
+        weekdays.forEach((day, index) => {
+          const weekday = index + 1;
+          const td = document.createElement("td");
+          const matched = classes.filter(c => {
+            const duration = c.duration || 1;
+            return c.weekday === weekday && period >= c.period && period < c.period + duration;
+          });
+
+          matched.forEach(classItem => {
+            const a = document.createElement("a");
+            const roomText = classItem.room ? ` @${classItem.room}` : "";
+            a.href = getSubjectUrl(classItem.id);
+            a.textContent = `${classItem.subject}${roomText}`;
+            td.appendChild(a);
+          });
+
+          tr.appendChild(td);
+        });
+
+        body.appendChild(tr);
+      }
+
+      empty.style.display = classes.length === 0 ? "block" : "none";
+    }
+
+    document.addEventListener("DOMContentLoaded", loadTimetable);
+  </script>
+</body>
+</html>

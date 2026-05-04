@@ -9,7 +9,11 @@
 <body>
   <header>
     <a href="home.html" class="logo" style="text-decoration: none; color: inherit;">📘 MyStudy</a>
-    <div class="menu-button" onclick="toggleMenu()">☰</div>
+    <div class="header-actions">
+      <a href="timetable.html" class="header-icon" title="時間割" aria-label="時間割">▦</a>
+      <a href="settings.html#timezone-settings" class="header-icon" title="設定" aria-label="設定">⚙</a>
+      <div class="menu-button" onclick="toggleMenu()">☰</div>
+    </div>
   </header>
 
   <nav id="dropdown-menu" class="menu"></nav>
@@ -39,14 +43,10 @@
   <script>
     injectEditModal();
 
-    const classes = JSON.parse(localStorage.getItem("classes") || "[]");
-    let todos   = JSON.parse(localStorage.getItem("todos")  || "[]");
-    let events  = JSON.parse(localStorage.getItem("events") || "[]");
-
-    // 期限切れ削除（永続化）
-    const cleaned = removeExpiredEntries(todos, events);
-    todos  = cleaned.todos;
-    events = cleaned.events;
+    const classes = readStoredList("classes");
+    const cleaned = cleanExpiredEntries();
+    let todos = cleaned.todos;
+    let events = cleaned.events;
 
     // ① 元データから entries を組み立て
     const entries = [];
@@ -86,7 +86,7 @@
       const type = document.getElementById("filterSelect").value;
       const list = document.getElementById("sorted-list");
       const empty = document.getElementById("empty-message");
-      list.innerHTML = "";
+      list.replaceChildren();
 
       const filtered = visibleEntries.filter(e =>
         type === "all" || e.type === type
@@ -99,12 +99,14 @@
         filtered.forEach(e => {
           const div = document.createElement("div");
           div.className = "item";
-          div.innerHTML = 
-            `<time>${e.dateStr}</time>` +
-            `<div>[${e.type==='todo'?'ToDo':'イベント'}] ` +
-              `${e.subject ? e.subject+'：':''}${e.label}` +
-              `${e.memo    ? `（${e.memo}）` : ''}` +
-            `</div>`;
+          appendEntrySummary(div, e);
+
+          if (e.type === "todo") {
+            const doneBtn = document.createElement("button");
+            doneBtn.textContent = "完了";
+            doneBtn.onclick = () => toggleTodoDone(e.id);
+            div.appendChild(doneBtn);
+          }
 
           const editBtn = document.createElement("button");
           editBtn.textContent = "編集";
